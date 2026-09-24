@@ -1,0 +1,32 @@
+# AGENTS.md - panel-web
+
+## Proyecto
+Panel de administración para vendedores de Friendly E-Shop, construido como SPA con Angular LTS y TypeScript estricto. Gestiona la experiencia de tiendas y operaciones consumiendo `panel-api`, que coordina con los servicios de dominio.
+Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallback de SPA.
+
+## Comandos
+- Instalar: `npm ci`
+- Ejecutar: `npm start`
+- Tests: `npm test`
+- Compilar: `npm run build`
+- Lint/formato: no está configurado; conserva el estilo existente.
+
+## Estilo y convenciones
+- Usa Angular 21, componentes standalone, TypeScript estricto y templates estrictos.
+- Nombres y código en inglés; textos de interfaz en español.
+- Separa presentación, acceso HTTP y estado; no conviertas componentes en fuentes de verdad del negocio.
+- Mantén la interfaz responsive desde 320 px y accesible con HTML semántico y navegación por teclado.
+
+## Reglas
+- Lee la skill `/angular-developer` y la spec activa, si existe, antes de tocar código.
+- Para tareas visuales consulta también `/ui-ux-pro-max` y conserva el lenguaje visual establecido.
+- Usa `panel-api` como frontera del panel; no accedas a bases ni dependas de detalles internos de las APIs Java.
+- Mantén hosts y configuración de API fuera de los componentes y evita credenciales en el bundle.
+- Keycloak y la identidad externa están diferidos; no añadas autenticación sin una spec.
+- Mantén versiones fijadas y consulta antes de añadir dependencias o cambiar contratos compartidos.
+- Preserva el fallback SPA y `/healthz` si modificas Docker o nginx; los manifiestos viven en `infra`.
+
+## Al terminar cualquier tarea
+- Ejecuta `npm test`; actualmente este script valida el build de producción.
+- Prueba manualmente la vista afectada en tamaños móvil y escritorio.
+- Verifica estados de carga, vacío, error y permisos cuando cambies consumo de APIs.
