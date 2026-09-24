@@ -9,11 +9,12 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 - Ejecutar: `npm start`
 - Tests: `npm test`
 - Compilar: `npm run build`
-- Lint/formato: no está configurado; conserva el estilo existente.
+- Lint: `npm run lint`; valida TypeScript, componentes y templates Angular.
 
 ## Estilo y convenciones
 - Usa Angular 21, componentes standalone, TypeScript estricto y templates estrictos.
 - Nombres y código en inglés; textos de interfaz en español.
+- Respeta `eslint.config.js`; corrige errores y warnings sin desactivar reglas como atajo.
 - Separa presentación, acceso HTTP y estado; no conviertas componentes en fuentes de verdad del negocio.
 - Mantén la interfaz responsive desde 320 px y accesible con HTML semántico y navegación por teclado.
 
@@ -24,9 +25,10 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 - Mantén hosts y configuración de API fuera de los componentes y evita credenciales en el bundle.
 - Keycloak y la identidad externa están diferidos; no añadas autenticación sin una spec.
 - Mantén versiones fijadas y consulta antes de añadir dependencias o cambiar contratos compartidos.
+- No añadas comentarios `eslint-disable` sin una causa documentada y localizada.
 - Preserva el fallback SPA y `/healthz` si modificas Docker o nginx; los manifiestos viven en `infra`.
 
 ## Al terminar cualquier tarea
-- Ejecuta `npm test`; actualmente este script valida el build de producción.
+- Ejecuta `npm test`; incluye lint de TypeScript/templates y build de producción.
 - Prueba manualmente la vista afectada en tamaños móvil y escritorio.
 - Verifica estados de carga, vacío, error y permisos cuando cambies consumo de APIs.
