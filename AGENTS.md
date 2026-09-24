@@ -2,6 +2,7 @@
 
 ## Proyecto
 Panel de administración para vendedores de Friendly E-Shop, construido como SPA con Angular LTS y TypeScript estricto. Gestiona la experiencia de tiendas y operaciones consumiendo `panel-api`, que coordina con los servicios de dominio.
+Es una aplicacion muy amigable con el usuario que permite principalmente gestionar los productos publicados, el look and feel debe transmitir elegancia y profesionalismo, pero a la vez practicidad. Debe verse como una Admin UI / Admin Panel
 Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallback de SPA.
 
 ## Comandos
