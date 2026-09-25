@@ -2,7 +2,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 main { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
-aside { display: flex; flex-direction: column; justify-content: space-between; padding: 2rem; border-right: 1px solid #4d5a53; color: #c9e2b5; }
+aside { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; padding: 2rem; border-right: 1px solid #4d5a53; color: #c9e2b5; }
+aside .brand { display: flex; flex-direction: column; gap: 0.25rem; }
 section { align-self: center; max-width: 760px; padding: clamp(2rem, 8vw, 8rem); }
 .eyebrow { color: #c9e2b5; text-transform: uppercase; letter-spacing: .12em; }
 h1 { margin: 1rem 0; font-family: Georgia, serif; font-size: clamp(3.5rem, 9vw, 8rem); line-height: .9; font-weight: 400; }
