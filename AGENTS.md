@@ -21,6 +21,7 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 
 ## Reglas
 - Lee la skill `/angular-developer` y la spec activa, si existe, antes de tocar código.
+- Usa `/angular-architecture` al crear o mover features, componentes, servicios o recursos compartidos.
 - Para tareas visuales consulta también `/ui-ux-pro-max` y conserva el lenguaje visual establecido.
 - Usa `panel-api` como frontera del panel; no accedas a bases ni dependas de detalles internos de las APIs Java.
 - Mantén hosts y configuración de API fuera de los componentes y evita credenciales en el bundle.
@@ -30,6 +31,7 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 - Preserva el fallback SPA y `/healthz` si modificas Docker o nginx; los manifiestos viven en `infra`.
 
 ## Al terminar cualquier tarea
+- Tras cambios no triviales de código de producción, aplica `/clean-code-guard` antes de finalizar.
 - Ejecuta `npm test`; incluye lint de TypeScript/templates y build de producción.
 - Prueba manualmente la vista afectada en tamaños móvil y escritorio.
 - Verifica estados de carga, vacío, error y permisos cuando cambies consumo de APIs.
