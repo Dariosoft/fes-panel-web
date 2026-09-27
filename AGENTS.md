@@ -21,8 +21,8 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 
 ## Reglas
 - Lee la skill `/angular-developer` y la spec activa, si existe, antes de tocar código.
-- Usa `/angular-architecture` al crear o mover features, componentes, servicios o recursos compartidos.
 - Para tareas visuales consulta también `/ui-ux-pro-max` y conserva el lenguaje visual establecido.
+- Escribe el CSS para que lo lea una persona. Una declaración por línea, una regla separada de la siguiente y los media queries con su contenido en líneas propias. No comprimas un selector y todas sus propiedades en una sola línea, ni en `styles.css` ni en los estilos de un componente.
 - Usa `panel-api` como frontera del panel; no accedas a bases ni dependas de detalles internos de las APIs Java.
 - Mantén hosts y configuración de API fuera de los componentes y evita credenciales en el bundle.
 - Keycloak y la identidad externa están diferidos; no añadas autenticación sin una spec.

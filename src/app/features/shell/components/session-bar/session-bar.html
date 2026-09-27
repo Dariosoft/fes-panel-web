@@ -1,0 +1,17 @@
+<div class="session-bar">
+  @if (authenticated()) {
+    <div class="session-bar__profile">
+      <p class="session-bar__name">{{ name() }}</p>
+      <p class="session-bar__email">{{ email() }}</p>
+    </div>
+    <button type="button" class="session-bar__action" (click)="logout.emit()">Salir</button>
+  } @else {
+    <button type="button" class="session-bar__action" (click)="enterWithGoogle.emit()">
+      Entrar con Google
+    </button>
+  }
+
+  @if (notice()) {
+    <p class="session-bar__notice" role="alert">{{ notice() }}</p>
+  }
+</div>
