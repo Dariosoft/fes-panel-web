@@ -1,8 +1,18 @@
-<main>
-  <aside>
-    <div>
-      <strong>Friendly</strong>
-      <span>Panel</span>
+<div class="flex min-h-dvh flex-col md:flex-row">
+  <aside
+    class="flex flex-col justify-between gap-6 border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:w-60 md:shrink-0 md:border-r md:border-b-0"
+  >
+    <div class="flex items-center gap-3">
+      <svg class="size-8 text-accent" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" />
+        <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" opacity="0.45" />
+        <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" opacity="0.45" />
+        <rect x="18" y="18" width="12" height="12" rx="2" stroke="currentColor" fill="none" stroke-width="2" />
+      </svg>
+      <div>
+        <p class="font-mono text-xs tracking-widest text-accent uppercase">Friendly</p>
+        <p class="font-mono text-base font-medium text-on-primary">Panel</p>
+      </div>
     </div>
     <app-session-bar
       [authenticated]="session.authenticated()"
@@ -13,9 +23,28 @@
       (logout)="session.logout()"
     />
   </aside>
-  <section>
-    <p class="eyebrow">Panel de vendedores</p>
-    <h1>Tu tienda empieza acá.</h1>
-    <p>La base operativa está lista para incorporar productos, stock y precios.</p>
-  </section>
-</main>
+
+  <main class="flex flex-1 flex-col gap-3 p-4 md:p-6">
+    <header class="border-b border-border pb-4">
+      <p class="font-mono text-xs tracking-widest text-accent uppercase">Panel de vendedores</p>
+      <h1 class="mt-2 font-mono text-2xl leading-tight font-medium text-foreground md:text-3xl">
+        Tu tienda empieza acá.
+      </h1>
+    </header>
+
+    <div class="grid gap-3 lg:grid-cols-2">
+      <article class="rounded-md border border-white/20 bg-card/80 p-4 backdrop-blur-md">
+        <h2 class="font-mono text-xs tracking-widest text-accent uppercase">Operación</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          La base operativa está lista para incorporar productos, stock y precios.
+        </p>
+      </article>
+      <article class="rounded-md border border-white/20 bg-card/80 p-4 backdrop-blur-md">
+        <h2 class="font-mono text-xs tracking-widest text-accent uppercase">Acceso</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          Entrar con Google es opcional. Sin sesión, este panel sigue usable.
+        </p>
+      </article>
+    </div>
+  </main>
+</div>

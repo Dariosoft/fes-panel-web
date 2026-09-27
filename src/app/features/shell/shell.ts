@@ -7,7 +7,9 @@ import { SessionBar } from './components/session-bar/session-bar';
   standalone: true,
   imports: [SessionBar],
   templateUrl: './shell.html',
-  styleUrl: './shell.css',
+  host: {
+    class: 'block min-h-dvh bg-background font-sans text-foreground',
+  },
 })
 export class Shell {
   protected readonly session = inject(Session);
