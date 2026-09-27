@@ -2,6 +2,8 @@
 
 Diagramas alineados con el código real en la rama `001/feat-panel-google-login`.
 
+Los diagramas priorizan relaciones arquitectónicas y de flujo; no intentan listar cada import, tipo local o dependencia transitiva ya explicada por el servicio de estado, el cliente HTTP o el componente dueño.
+
 **Configuración:** `apiBaseUrl` = `https://api.friendly-e-shop.duckdns.org` (mismo valor en `environment.ts` y `environment.development.ts`).
 
 **JSON de sesión (plano):** `{ authenticated, id?, email?, name? }` — si `authenticated: true`, incluye `id`, `email` y `name`.
