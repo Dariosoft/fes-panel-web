@@ -4,9 +4,9 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 
 ## Configuración y esqueleto HTTP
 
-- [x] **T1.** Crear `src/environments/environment.ts` y `environment.development.ts` con `apiBaseUrl` (sin barra final; p. ej. Minikube `http://api.friendly-e-shop.test`), alineado con los `fileReplacements` ya declarados en `angular.json`.  
+- [x] **T1.** Crear `src/environments/environment.ts` y `environment.development.ts` con `apiBaseUrl` sin barra final (`https://api.friendly-e-shop.duckdns.org` en ambos hoy), alineado con los `fileReplacements` ya declarados en `angular.json`.  
   **RFs:** RF-9, RF-10  
-  **Done when:** el build de desarrollo resuelve un `apiBaseUrl` distinto del de producción (o el valor por defecto del entorno) y no hay literales de client id / secret de Google en environments.
+  **Done when:** el build resuelve `apiBaseUrl` a duckdns (sin barra final) y no hay literales de client id / secret de Google en environments.
 
 - [x] **T2.** Añadir `app/app.config.ts` con `provideHttpClient()` e integrar el bootstrap en `main.ts` (providers del app config).  
   **RFs:** RF-9  
@@ -22,15 +22,15 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 
 ## Shell Admin UI y barra de sesión
 
-- [x] **T5.** Extraer el layout actual (aside «Friendly / Panel» + sección operativa) a `app/features/shell/shell.ts` y cablear la raíz fina (`app.ts` / `main.ts`) sin route guards ni interceptores que exijan login.  
+- [x] **T5.** Extraer el layout actual (aside «Friendly / Panel» + sección operativa) a `app/features/shell/shell.ts`, montarlo desde `app.routes.ts` (`''` → Shell) y cablear la raíz fina (`app.ts` + `RouterOutlet`) sin route guards ni interceptores que exijan login.  
   **RFs:** RF-1, RF-2  
-  **Done when:** el panel se ve como Admin UI (mismo lenguaje visual de `styles.css`) y todo el contenido es usable sin autenticación.
+  **Done when:** el panel se ve como Admin UI (Tailwind + Fira en `styles.css`) y todo el contenido es usable sin autenticación.
 
-- [x] **T6.** Crear `app/features/shell/components/session-bar.ts` presentacional: sin sesión muestra «Entrar con Google» y no «Salir»; con sesión muestra «Salir» y no «Entrar con Google»; textos en español; operable por teclado y usable desde 320 px.  
+- [x] **T6.** Crear `app/features/shell/components/session-bar/session-bar.ts` presentacional: sin sesión muestra «Entrar con Google» y no «Salir»; con sesión muestra «Salir» y no «Entrar con Google»; textos en español; operable por teclado y usable desde 320 px.  
   **RFs:** RF-3, RF-4  
   **Done when:** al forzar estado anónimo/autenticado en la plantilla, los controles son mutuamente excluyentes y accesibles por teclado.
 
-- [x] **T7.** En `session-bar`, con sesión mostrar nombre y correo; sin sesión no mostrar esos datos; avisos no bloqueantes con `role="alert"` (o live region), foco visible y controles ≥ 44 px.  
+- [x] **T7.** En `components/session-bar/`, con sesión mostrar nombre y correo; sin sesión no mostrar esos datos; avisos no bloqueantes con `role="alert"` (o live region), foco visible y controles ≥ 44 px.  
   **RFs:** RF-12  
   **Done when:** el perfil (nombre + correo) solo aparece en estado autenticado y los avisos son anunciables por AT.
 

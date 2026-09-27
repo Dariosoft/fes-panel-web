@@ -12,41 +12,48 @@ Implementar en `panel-web` (Angular 21, SPA standalone) la identidad **opcional*
 - H2 → entrar con Google vía panel-api y ver identidad (RF-3, RF-5, RF-6, RF-9–RF-14).
 - H3 → salir y cerrar la sesión compartida también para la tienda (RF-4, RF-7, RF-8, RF-16).
 
-## Estado actual del proyecto (punto de partida)
+## Estado actual del proyecto
 
-- App mínima en `src/main.ts` (shell Admin UI inline: aside + sección; sin HttpClient, sin `src/app/`, sin environments creados aunque `angular.json` ya declara `fileReplacements`).
-- Estilos globales en `src/styles.css` (panel oscuro, tipografía Georgia / system-ui, usable desde 320 px).
+- Arquitectura Angular standalone ya en `src/app/`: `app.config.ts`, `app.routes.ts`, `app.ts` + `RouterOutlet`, `core/session/`, `features/shell/` (no shell inline en `main.ts`).
+- Environments creados: `environment.ts` y `environment.development.ts` con el mismo `apiBaseUrl` `https://api.friendly-e-shop.duckdns.org` (sin barra final); `angular.json` mantiene `fileReplacements` para desarrollo.
+- Estilos globales en `src/styles.css`: Tailwind CSS v4 + tipografía Fira Sans / Fira Code; tema Admin UI oscuro; usable desde 320 px.
 - Convenciones: código en inglés; textos de UI en español; presentación ≠ HTTP ≠ estado; host de API fuera de componentes; sin credenciales en el bundle.
 - Frontera HTTP de este corte: únicamente rutas `/panel/*` del anfitrión de API del entorno.
 - Referencia histórica en la rama `001/feat-optional-panel-login` (paths `/panel/identity/*` y arranque XHR del login): **no reutilizar esos contratos**; esta spec fija paths y navegación distintos.
+- Diagramas de secuencia y capas: ver `uml.md`.
 
-## Arquitectura propuesta
+## Arquitectura (código real)
 
 ### Estructura de carpetas (`/angular-architecture`)
 
 ```
 src/
-  main.ts                         # bootstrapApplication + providers
+  main.ts                         # bootstrapApplication(App, appConfig)
+  styles.css                      # Tailwind v4 + Fira Sans / Fira Code
   environments/
-    environment.ts                # apiBaseUrl del entorno (build-time)
-    environment.development.ts
+    environment.ts                # apiBaseUrl (duckdns)
+    environment.development.ts    # mismo apiBaseUrl hoy
   app/
-    app.config.ts                 # provideHttpClient, inicializadores
-    app.ts                        # raíz fina o reexport del shell
+    app.config.ts                 # provideRouter, provideHttpClient, provideAppInitializer → hydrate
+    app.routes.ts                 # '' → Shell; '**' → redirect
+    app.ts / app.html             # raíz fina + RouterOutlet
     core/
       session/
         panel-session.ts          # cliente HTTP tipado → solo {API}/panel/*
         session.ts                # estado (signals) + acciones entrar/salir/hidratar
-        session-profile.ts        # tipos de respuesta (sin sufijo .model)
+        session-profile.ts        # JSON plano {authenticated,id,email,name}
     features/
       shell/
-        shell.ts                  # layout Admin UI (aside + contenido)
+        shell.ts / shell.html     # layout Admin UI (aside + contenido)
         components/
-          session-bar.ts          # «Entrar con Google» / perfil / «Salir» / avisos
+          session-bar/
+            session-bar.ts        # «Entrar con Google» / perfil / «Salir» / avisos
+            session-bar.html
 ```
 
-- Scope Rule: `session-bar` solo lo usa el shell → `features/shell/components/`.
+- Scope Rule: `session-bar` solo lo usa el shell → `features/shell/components/session-bar/`.
 - Sesión es singleton de app → `core/session/` (`providedIn: 'root'`).
+- Enrutado: `app.routes.ts` monta `Shell` en `''` sin guards de login.
 - Nombres sin sufijos `.component` / `.service`; `inject()`; miembros de plantilla `protected` cuando aplique; signals para estado.
 
 ### Capas
@@ -71,7 +78,7 @@ src/
 
 **Cubre:** RF-1, RF-2
 
-- Extraer el layout actual (aside «Friendly / Panel» + sección operativa) a `features/shell/shell.ts` manteniendo el lenguaje visual existente.
+- Layout Admin UI en `features/shell/shell.ts` (aside «Friendly / Panel» + sección operativa), montado por `app.routes.ts`.
 - Ningún route guard ni interceptor que exija sesión o redirija a login.
 - El contenido del panel permanece usable con o sin sesión; la barra de sesión es opcional y no bloquea.
 
@@ -87,7 +94,7 @@ src/
 
 **Cubre:** RF-9, RF-10
 
-- Crear `src/environments/environment.ts` y `environment.development.ts` con `apiBaseUrl` (sin barra final), p. ej. Minikube `http://api.friendly-e-shop.test` alineado con infra; otros dominios vía file replacement / build.
+- `src/environments/environment.ts` y `environment.development.ts` con `apiBaseUrl` sin barra final: actualmente ambos usan `https://api.friendly-e-shop.duckdns.org` (pueden divergir vía `fileReplacements` / build cuando haga falta).
 - `angular.json` ya apunta esos replacements en `development`.
 - Checklist: cero literales de client id / secret de Google en código, environments, templates o tests (RF-10).
 
@@ -98,7 +105,7 @@ src/
 - `panel-session.ts` con `HttpClient`:
   - `getSession()` → `GET {apiBaseUrl}/panel/session` con credenciales.
   - `logout()` → `POST {apiBaseUrl}/panel/logout` con cuerpo vacío y credenciales.
-- Tipado de respuesta alineado con el JSON que panel-api reenvía de cuentas: `authenticated`, y si aplica `id`, `name`/`nombre`, `email`/`correo` (ajustar nombres de campos al contrato real de panel-api/account-api sin acoplar a otros hosts).
+- Tipado de respuesta: JSON plano `{ authenticated, id, email, name }` (`session-profile.ts`: anónimo `authenticated: false`; autenticado exige `id`, `email`, `name`).
 - Prohibido: bases URL de account-api, catalog/order/payment, o endpoints de Google.
 
 ### 5. Entrar con Google (navegación)
@@ -151,19 +158,20 @@ src/
 | Consultar sesión | `GET {API}/panel/session` | Sí | RF-6, RF-12–RF-15 |
 | Cerrar sesión | `POST {API}/panel/logout` | Sí | RF-7, RF-8, RF-16 |
 
-Respuesta de sesión (esperada vía panel-api): JSON de cuentas con `authenticated` y, si true, identidad con nombre y correo (RF-12). Errores de disponibilidad (p. ej. 503) → rama RF-15 / RF-16 según la operación.
+Respuesta de sesión (vía panel-api): JSON plano `{ authenticated, id?, email?, name? }` (RF-12). Errores de disponibilidad (p. ej. 503) → rama RF-15 / RF-16 según la operación.
 
 ## Cambios de UI (Admin Panel)
 
-- Conservar atmósfera Admin UI actual (RF-1); no rediseñar el hero operativo en este corte.
+- Conservar atmósfera Admin UI actual (RF-1): Tailwind + Fira Sans / Fira Code; no rediseñar el hero operativo en este corte.
 - Textos: «Entrar con Google», «Salir», avisos en español.
 - Avisos no bloqueantes con `role="alert"` (o live region), foco visible, contraste adecuado.
 - Responsive ≥ 320 px; botones accionables por teclado.
 
 ## Bootstrap Angular
 
+- `provideRouter(routes)` desde `app.routes.ts` (ruta `''` → `Shell`).
 - `provideHttpClient()` en `app.config.ts` / `bootstrapApplication`.
-- `provideAppInitializer` → `session.hydrate()` (consulta sesión + lectura del indicador de URL).
+- `provideAppInitializer` → `inject(Session).hydrate()` (consulta sesión + lectura del indicador de URL).
 - Environments vía imports de `environment`; sin URLs hardcodeadas en componentes.
 
 ## Pruebas y verificación
