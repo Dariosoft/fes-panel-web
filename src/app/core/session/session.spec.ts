@@ -7,8 +7,7 @@ import { Session } from './session';
 describe('Session', () => {
   let session: Session;
   let httpTesting: HttpTestingController;
-  const sessionUrl = `${environment.apiBaseUrl}/panel/session`;
-  const logoutUrl = `${environment.apiBaseUrl}/panel/logout`;
+  const sessionUrl = `${environment.apiBaseUrl}/panel/identity/session`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -87,8 +86,8 @@ describe('Session', () => {
     await hydratePromise;
 
     const logoutPromise = session.logout();
-    const request = httpTesting.expectOne(logoutUrl);
-    expect(request.request.method).toBe('POST');
+    const request = httpTesting.expectOne(sessionUrl);
+    expect(request.request.method).toBe('DELETE');
     expect(request.request.withCredentials).toBe(true);
     request.flush({ authenticated: false });
     await logoutPromise;
@@ -109,7 +108,7 @@ describe('Session', () => {
     await hydratePromise;
 
     const logoutPromise = session.logout();
-    httpTesting.expectOne(logoutUrl).flush('error', {
+    httpTesting.expectOne(sessionUrl).flush('error', {
       status: 503,
       statusText: 'Service Unavailable',
     });
@@ -130,7 +129,9 @@ describe('Session', () => {
 
     try {
       session.enterWithGoogle();
-      expect(assignSpy).toHaveBeenCalledWith(`${environment.apiBaseUrl}/panel/login/google`);
+      expect(assignSpy).toHaveBeenCalledWith(
+        `${environment.apiBaseUrl}/panel/identity/login/google`,
+      );
     } finally {
       Object.defineProperty(globalThis, 'location', {
         configurable: true,

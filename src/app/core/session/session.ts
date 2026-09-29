@@ -37,7 +37,7 @@ export class Session {
   }
 
   enterWithGoogle(): void {
-    globalThis.location.assign(`${environment.apiBaseUrl}/panel/login/google`);
+    globalThis.location.assign(`${environment.apiBaseUrl}/panel/identity/login/google`);
   }
 
   async logout(): Promise<void> {

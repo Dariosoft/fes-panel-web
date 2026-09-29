@@ -7,16 +7,16 @@ import { SessionProfile } from './session-profile';
 @Injectable({ providedIn: 'root' })
 export class PanelSession {
   private readonly http = inject(HttpClient);
-  private readonly panelBaseUrl = `${environment.apiBaseUrl}/panel`;
+  private readonly identityBaseUrl = `${environment.apiBaseUrl}/panel/identity`;
 
   getSession(): Observable<SessionProfile> {
-    return this.http.get<SessionProfile>(`${this.panelBaseUrl}/session`, {
+    return this.http.get<SessionProfile>(`${this.identityBaseUrl}/session`, {
       withCredentials: true,
     });
   }
 
   logout(): Observable<SessionProfile> {
-    return this.http.post<SessionProfile>(`${this.panelBaseUrl}/logout`, null, {
+    return this.http.delete<SessionProfile>(`${this.identityBaseUrl}/session`, {
       withCredentials: true,
     });
   }
