@@ -15,39 +15,44 @@ flowchart TB
   subgraph bootstrap["Bootstrap"]
     main["main.ts<br/>bootstrapApplication(App, appConfig)"]
     config["app.config.ts<br/>provideRouter · provideHttpClient<br/>provideAppInitializer → Session.hydrate()"]
-    routes["app.routes.ts<br/>'' → Shell"]
+    routes["app.routes.ts<br/>'' → HomeView"]
     env["environments/*<br/>apiBaseUrl"]
   end
 
   subgraph presentation["Presentación"]
-    app["App<br/>RouterOutlet"]
-    shell["Shell<br/>features/shell/"]
-    bar["SessionBar<br/>components/session-bar/"]
+    app["App<br/>Admin shell + RouterOutlet"]
+    home["HomeView<br/>views/home/"]
+    bar["SessionBar<br/>core/components/session-bar/"]
   end
 
   subgraph state["Estado"]
-    session["Session<br/>core/session/session.ts<br/>signals · hydrate · enterWithGoogle · logout"]
+    session["Session<br/>core/services/session/session.ts<br/>signals · hydrate · enterWithGoogle · logout"]
   end
 
   subgraph http["HTTP"]
-    panel["PanelSession<br/>core/session/panel-session.ts<br/>GET/POST …/panel/*"]
+    panel["PanelSession<br/>core/services/session/panel-session.ts<br/>GET/DELETE …/panel/identity/*"]
+    external["ExternalNavigation<br/>core/services/navigation/"]
   end
 
   subgraph types["Tipos"]
-    profile["session-profile.ts<br/>SessionProfile flat JSON"]
+    profile["core/models/session-profile.ts<br/>SessionProfile flat JSON"]
+    status["core/constants/session-status.ts<br/>anonymous/authenticated"]
   end
 
   main --> config
+  config --> app
   config --> routes
   config --> session
   env --> panel
   env --> session
-  routes --> app
-  app --> shell
-  shell --> bar
-  shell --> session
+  routes --> home
+  app --> bar
+  app --> session
+  app --> home
   session --> panel
+  session --> status
   panel --> profile
+  panel --> external
   session --> profile
 ```
 
@@ -62,16 +67,20 @@ src/
     environment.development.ts       # mismo apiBaseUrl hoy
   app/
     app.config.ts                    # provideAppInitializer → hydrate
-    app.routes.ts                    # '' → Shell
-    app.ts / app.html                # raíz + RouterOutlet
-    core/session/
-      session.ts                     # estado (signals)
-      panel-session.ts               # cliente HTTP
-      session-profile.ts             # tipos JSON plano
-    features/shell/
-      shell.ts / shell.html
+    app.routes.ts                    # '' → HomeView
+    app.ts / app.html                # shell Admin UI persistente + RouterOutlet
+    core/
       components/session-bar/
         session-bar.ts / session-bar.html
+      constants/session-status.ts
+      models/session-profile.ts      # tipos JSON plano
+      services/
+        navigation/external-navigation.ts
+        session/
+          session.ts                 # estado (signals)
+          panel-session.ts           # cliente HTTP
+    views/home/
+      home.ts / home.html
 ```
 
 ## Secuencia: hidratar al arranque
@@ -81,12 +90,12 @@ sequenceDiagram
   participant Boot as bootstrap / appConfig
   participant S as Session
   participant PS as PanelSession
-  participant API as apiBaseUrl/panel
-  participant UI as Shell / SessionBar
+  participant API as apiBaseUrl/panel/identity
+  participant UI as App / SessionBar
 
   Boot->>S: provideAppInitializer → hydrate()
   S->>PS: getSession()
-  PS->>API: GET /panel/session<br/>(withCredentials)
+  PS->>API: GET /panel/identity/session<br/>(withCredentials)
   alt authenticated + name + email
     API-->>PS: {authenticated:true, id, email, name}
     PS-->>S: SessionProfile
@@ -103,7 +112,7 @@ sequenceDiagram
     S->>S: setAnonymous(aviso sesión)
     S->>UI: «Entrar con Google» + aviso
   end
-  S->>S: applyLoginErrorFromUrl()<br/>(?login_error → aviso + replaceState)
+  S->>S: applyLoginErrorFromUrl()<br/>(Router.parseUrl ?login_error → aviso + router.navigate replaceUrl)
 ```
 
 ## Secuencia: Entrar con Google
@@ -112,18 +121,20 @@ sequenceDiagram
 sequenceDiagram
   participant User as Usuario
   participant Bar as SessionBar
-  participant Shell as Shell
+  participant App as App
   participant S as Session
-  participant Nav as Navegador
-  participant API as apiBaseUrl/panel
+  participant PS as PanelSession
+  participant Ext as ExternalNavigation
+  participant API as apiBaseUrl/panel/identity
 
   User->>Bar: clic «Entrar con Google»
-  Bar->>Shell: enterWithGoogle.emit()
-  Shell->>S: session.enterWithGoogle()
-  S->>Nav: location.assign(apiBaseUrl + '/panel/login/google')
-  Nav->>API: GET /panel/login/google<br/>(navegación completa, no XHR)
-  Note over Nav,API: OAuth y cookie fes_session<br/>los resuelve el backend
-  Nav-->>Nav: return_to → panel
+  Bar->>App: enterWithGoogle.emit()
+  App->>S: session.enterWithGoogle()
+  S->>PS: enterWithGoogle()
+  PS->>Ext: navigateTo(apiBaseUrl + '/panel/identity/login/google')
+  Ext->>API: GET /panel/identity/login/google<br/>(navegación completa, no XHR)
+  Note over Ext,API: OAuth y cookie fes_session<br/>los resuelve el backend
+  Ext-->>Ext: return_to → panel
   Note over S: Al recargar, hydrate()<br/>pinta «Salir» o aviso login_error
 ```
 
@@ -133,16 +144,16 @@ sequenceDiagram
 sequenceDiagram
   participant User as Usuario
   participant Bar as SessionBar
-  participant Shell as Shell
+  participant App as App
   participant S as Session
   participant PS as PanelSession
-  participant API as apiBaseUrl/panel
+  participant API as apiBaseUrl/panel/identity
 
   User->>Bar: clic «Salir»
-  Bar->>Shell: logout.emit()
-  Shell->>S: session.logout()
+  Bar->>App: logout.emit()
+  App->>S: session.logout()
   S->>PS: logout()
-  PS->>API: POST /panel/logout<br/>(withCredentials, cuerpo null)
+  PS->>API: DELETE /panel/identity/session<br/>(withCredentials)
   alt 2xx
     API-->>PS: OK
     PS-->>S: éxito
@@ -156,12 +167,12 @@ sequenceDiagram
   end
 ```
 
-## Contrato HTTP (solo `{apiBaseUrl}/panel/*`)
+## Contrato HTTP (solo `{apiBaseUrl}/panel/identity/*`)
 
 | Operación | Método | Path relativo |
 |-----------|--------|---------------|
-| Iniciar Google | GET (navegación) | `/panel/login/google` |
-| Consultar sesión | GET | `/panel/session` |
-| Cerrar sesión | POST | `/panel/logout` |
+| Iniciar Google | GET (navegación) | `/panel/identity/login/google` |
+| Consultar sesión | GET | `/panel/identity/session` |
+| Cerrar sesión | DELETE | `/panel/identity/session` |
 
 `{apiBaseUrl}` = `https://api.friendly-e-shop.duckdns.org`

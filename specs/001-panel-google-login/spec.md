@@ -17,9 +17,9 @@ El panel de administración de Friendly E-Shop debe presentarse como una Admin U
 - RF-2: EL SISTEMA permitirá usar la página entera sin exigir inicio de sesión.
 - RF-3: MIENTRAS no haya sesión, EL SISTEMA mostrará «Entrar con Google» y no mostrará «Salir».
 - RF-4: MIENTRAS haya sesión, EL SISTEMA mostrará «Salir» y no mostrará «Entrar con Google».
-- RF-5: CUANDO el usuario elige «Entrar con Google», EL SISTEMA navegará a `GET {API}/panel/login/google`, donde `{API}` es el anfitrión de API configurado para el entorno.
-- RF-6: CUANDO se carga la página, EL SISTEMA consultará `GET {API}/panel/session` incluyendo las credenciales de sesión.
-- RF-7: CUANDO el usuario elige «Salir», EL SISTEMA solicitará `POST {API}/panel/logout` incluyendo las credenciales de sesión.
+- RF-5: CUANDO el usuario elige «Entrar con Google», EL SISTEMA navegará a `GET {API}/panel/identity/login/google`, donde `{API}` es el anfitrión de API configurado para el entorno.
+- RF-6: CUANDO se carga la página, EL SISTEMA consultará `GET {API}/panel/identity/session` incluyendo las credenciales de sesión.
+- RF-7: CUANDO el usuario elige «Salir», EL SISTEMA solicitará `DELETE {API}/panel/identity/session` incluyendo las credenciales de sesión.
 - RF-8: CUANDO el cierre de sesión se completa con éxito, EL SISTEMA dejará la sesión compartida cerrada también para la tienda.
 - RF-9: EL SISTEMA hablará únicamente con el anfitrión de API configurado para el entorno (por ejemplo Minikube u otro dominio futuro).
 - RF-10: EL SISTEMA no incluirá el identificador de cliente de Google en el código entregado al navegador.
@@ -51,7 +51,7 @@ El panel de administración de Friendly E-Shop debe presentarse como una Admin U
 - Incluir el identificador de cliente de Google en el código entregado al navegador.
 
 ## Criterios de finalización
-- Todos los RF decididos verificables en demo manual del flujo principal (uso sin login, entrar con Google vía panel-api, consultar sesión al cargar, salir y comprobar efecto en la sesión compartida).
+- Todos los RF decididos verificables en demo manual del flujo principal (uso sin login, entrar con Google vía panel-api, consultar sesión al cargar, salir con `DELETE /panel/identity/session` y comprobar efecto en la sesión compartida).
 - Los marcadores `[NECESITA ACLARACIÓN]` resueltos o aceptados explícitamente como diferidos.
 - Textos de interfaz en español y comprobación visual del panel como Admin UI en móvil y escritorio.
 
