@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { Shell } from './features/shell/shell';
+import { HomeView } from './views/home/home';
 
 export const routes: Routes = [
   {
     path: '',
-    component: Shell,
+    component: HomeView,
     title: 'Friendly E-Shop | Panel',
   },
   {

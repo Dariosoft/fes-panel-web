@@ -1,30 +1,49 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
+import { environment } from '../../../../environments/environment';
+import { ExternalNavigation } from '../navigation/external-navigation';
 import { Session } from './session';
 
 describe('Session', () => {
   let session: Session;
   let httpTesting: HttpTestingController;
+  let router: {
+    url: string;
+    navigate: ReturnType<typeof vi.fn>;
+    parseUrl: ReturnType<typeof vi.fn>;
+  };
+  let externalNavigation: { navigateTo: ReturnType<typeof vi.fn> };
   const sessionUrl = `${environment.apiBaseUrl}/panel/identity/session`;
 
   beforeEach(() => {
+    router = {
+      url: '/',
+      navigate: vi.fn(() => Promise.resolve(true)),
+      parseUrl: vi.fn((url: string) => ({
+        queryParams: url.includes('login_error') ? { login_error: '1' } : {},
+      })),
+    };
+    externalNavigation = { navigateTo: vi.fn() };
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: router },
+        { provide: ExternalNavigation, useValue: externalNavigation },
+      ],
     });
     session = TestBed.inject(Session);
     httpTesting = TestBed.inject(HttpTestingController);
-    history.replaceState({}, '', '/');
   });
 
   afterEach(() => {
     httpTesting.verify();
-    history.replaceState({}, '', '/');
   });
 
-  it('hydrates to authenticated when session returns identity', async () => {
-    const hydratePromise = session.hydrate();
+  it('hydrates to authenticated when session returns identity', () => {
+    session.hydrate();
     const request = httpTesting.expectOne(sessionUrl);
     expect(request.request.withCredentials).toBe(true);
     request.flush({
@@ -33,7 +52,6 @@ describe('Session', () => {
       name: 'Ada Lovelace',
       email: 'ada@example.com',
     });
-    await hydratePromise;
 
     expect(session.authenticated()).toBe(true);
     expect(session.profile()?.name).toBe('Ada Lovelace');
@@ -41,78 +59,75 @@ describe('Session', () => {
     expect(session.notice()).toBeNull();
   });
 
-  it('hydrates to anonymous without notice when session is unauthenticated', async () => {
-    const hydratePromise = session.hydrate();
+  it('hydrates to anonymous without notice when session is unauthenticated', () => {
+    session.hydrate();
     httpTesting.expectOne(sessionUrl).flush({ authenticated: false });
-    await hydratePromise;
 
     expect(session.authenticated()).toBe(false);
     expect(session.profile()).toBeNull();
     expect(session.notice()).toBeNull();
   });
 
-  it('hydrates to anonymous with notice when session lookup fails', async () => {
-    const hydratePromise = session.hydrate();
+  it('hydrates to anonymous with notice when session lookup fails', () => {
+    session.hydrate();
     httpTesting.expectOne(sessionUrl).flush('error', {
       status: 503,
       statusText: 'Service Unavailable',
     });
-    await hydratePromise;
 
     expect(session.authenticated()).toBe(false);
     expect(session.notice()).toBe('No se pudo comprobar la sesión.');
   });
 
-  it('forces anonymous UI and clears login_error from the URL', async () => {
-    history.replaceState({}, '', '/?login_error=1');
+  it('forces anonymous UI and clears login_error from the URL', () => {
+    router.url = '/?login_error=1';
 
-    const hydratePromise = session.hydrate();
+    session.hydrate();
     httpTesting.expectOne(sessionUrl).flush({ authenticated: false });
-    await hydratePromise;
 
     expect(session.authenticated()).toBe(false);
     expect(session.notice()).toBe('No se pudo entrar.');
-    expect(globalThis.location.search).not.toContain('login_error');
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      queryParams: { login_error: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 
-  it('logs out to anonymous on success', async () => {
-    const hydratePromise = session.hydrate();
+  it('logs out to anonymous on success', () => {
+    session.hydrate();
     httpTesting.expectOne(sessionUrl).flush({
       authenticated: true,
       id: 'user-1',
       name: 'Ada Lovelace',
       email: 'ada@example.com',
     });
-    await hydratePromise;
 
-    const logoutPromise = session.logout();
+    session.logout();
     const request = httpTesting.expectOne(sessionUrl);
     expect(request.request.method).toBe('DELETE');
     expect(request.request.withCredentials).toBe(true);
     request.flush({ authenticated: false });
-    await logoutPromise;
 
     expect(session.authenticated()).toBe(false);
     expect(session.profile()).toBeNull();
     expect(session.notice()).toBeNull();
   });
 
-  it('keeps authenticated state and shows notice when logout fails', async () => {
-    const hydratePromise = session.hydrate();
+  it('keeps authenticated state and shows notice when logout fails', () => {
+    session.hydrate();
     httpTesting.expectOne(sessionUrl).flush({
       authenticated: true,
       id: 'user-1',
       name: 'Ada Lovelace',
       email: 'ada@example.com',
     });
-    await hydratePromise;
 
-    const logoutPromise = session.logout();
+    session.logout();
     httpTesting.expectOne(sessionUrl).flush('error', {
       status: 503,
       statusText: 'Service Unavailable',
     });
-    await logoutPromise;
 
     expect(session.authenticated()).toBe(true);
     expect(session.profile()?.email).toBe('ada@example.com');
@@ -120,23 +135,10 @@ describe('Session', () => {
   });
 
   it('navigates to panel Google login on enterWithGoogle', () => {
-    const assignSpy = vi.fn();
-    const originalLocation = globalThis.location;
-    Object.defineProperty(globalThis, 'location', {
-      configurable: true,
-      value: { ...originalLocation, assign: assignSpy, href: originalLocation.href },
-    });
+    session.enterWithGoogle();
 
-    try {
-      session.enterWithGoogle();
-      expect(assignSpy).toHaveBeenCalledWith(
-        `${environment.apiBaseUrl}/panel/identity/login/google`,
-      );
-    } finally {
-      Object.defineProperty(globalThis, 'location', {
-        configurable: true,
-        value: originalLocation,
-      });
-    }
+    expect(externalNavigation.navigateTo).toHaveBeenCalledWith(
+      `${environment.apiBaseUrl}/panel/identity/login/google`,
+    );
   });
 });
