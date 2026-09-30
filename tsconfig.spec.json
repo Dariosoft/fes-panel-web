@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    "rootDir": "./src",
     "lib": ["ES2022", "dom", "ESNext.Disposable"],
     "types": ["vitest/globals"]
   },

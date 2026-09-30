@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "angular-architecture": {
-      "source": "gentleman-programming/gentleman-skills",
-      "sourceType": "github",
-      "skillPath": "curated/angular/architecture/SKILL.md",
-      "computedHash": "a85a381f9f5cab49477993ce1992b138d22262a9f20d2c24ce1fe97ccda5c273"
-    },
     "angular-developer": {
       "source": "angular/angular",
       "sourceType": "github",

@@ -1,0 +1,25 @@
+<div class="flex min-h-dvh flex-col md:flex-row">
+  <aside
+    class="flex flex-col justify-between gap-6 border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:w-60 md:shrink-0 md:border-r md:border-b-0"
+  >
+    <div class="flex items-center gap-3">
+      <img class="size-11 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
+      <div>
+        <p class="font-mono text-xs tracking-widest text-accent uppercase">Friendly</p>
+        <p class="font-mono text-base font-medium text-on-primary">Panel</p>
+      </div>
+    </div>
+    <app-session-bar
+      [authenticated]="session.authenticated()"
+      [name]="session.profile()?.name ?? ''"
+      [email]="session.profile()?.email ?? ''"
+      [notice]="session.notice()"
+      (enterWithGoogle)="session.enterWithGoogle()"
+      (logout)="session.logout()"
+    />
+  </aside>
+
+  <main class="flex flex-1 flex-col gap-3 p-4 md:p-6">
+    <router-outlet />
+  </main>
+</div>

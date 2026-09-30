@@ -1,0 +1,248 @@
+# Plan 001 — Panel con entrada Google opcional
+
+## Resumen técnico
+
+Implementar en `panel-web` (Angular 21, SPA standalone) la identidad **opcional** del Admin UI: el panel es usable completo sin autenticación; «Entrar con Google» navega a `GET {API}/panel/identity/login/google`; al cargar se consulta `GET {API}/panel/identity/session` con credenciales; con sesión se muestran nombre, correo y «Salir»; «Salir» llama `DELETE {API}/panel/identity/session` con credenciales. El front habla **solo** con el anfitrión de API configurado (panel-api vía ese host), **no** incluye el client id de Google ni llama a account-api, APIs Java de dominio ni Google.
+
+**Gobernanza:** aplica `AGENTS.md`, `/angular-developer`, `/angular-architecture` y, en lo visual, `/ui-ux-pro-max` conservando el lenguaje Admin UI ya presente en `src/styles.css`. La nota de Keycloak diferido queda anulada **solo** para el flujo de esta spec.
+
+## Historias cubiertas
+
+- H1 → uso completo sin login (RF-1, RF-2).
+- H2 → entrar con Google vía panel-api y ver identidad (RF-3, RF-5, RF-6, RF-9–RF-14).
+- H3 → salir y cerrar la sesión compartida también para la tienda (RF-4, RF-7, RF-8, RF-16).
+
+## Estado actual del proyecto
+
+- Arquitectura Angular standalone ya en `src/app/`: `app.config.ts`, `app.routes.ts`, `app.ts` + `RouterOutlet`, shell persistente en `App`, vista inicial en `views/home/`, y conceptos compartidos bajo `core/` por categoría.
+- Environments creados: `environment.ts` y `environment.development.ts` con el mismo `apiBaseUrl` `https://api.friendly-e-shop.duckdns.org` (sin barra final); `angular.json` mantiene `fileReplacements` para desarrollo.
+- Estilos globales en `src/styles.css`: Tailwind CSS v4 + tipografía Fira Sans / Fira Code; tema Admin UI oscuro; usable desde 320 px.
+- Convenciones: código en inglés; textos de UI en español; presentación ≠ HTTP ≠ estado; host de API fuera de componentes; sin credenciales en el bundle.
+- Frontera HTTP de este corte: únicamente rutas `/panel/identity/*` del anfitrión de API del entorno.
+- Referencia histórica en la rama `001/feat-optional-panel-login`: no reutilizar arranque XHR del login; esta spec fija navegación completa del navegador hacia panel-api.
+- Diagramas de secuencia y capas: ver `uml.md`.
+
+## Arquitectura (código real)
+
+### Estructura de carpetas (`/angular-architecture`)
+
+```
+src/
+  main.ts                         # bootstrapApplication(App, appConfig)
+  styles.css                      # Tailwind v4 + Fira Sans / Fira Code
+  environments/
+    environment.ts                # apiBaseUrl (duckdns)
+    environment.development.ts    # mismo apiBaseUrl hoy
+  app/
+    app.config.ts                 # provideRouter, provideHttpClient, provideAppInitializer → hydrate
+    app.routes.ts                 # '' → HomeView; '**' → redirect
+    app.ts / app.html             # shell Admin UI persistente + RouterOutlet
+    core/
+      components/
+        session-bar/
+          session-bar.ts          # «Entrar con Google» / perfil / «Salir» / avisos
+          session-bar.html
+      constants/
+        session-status.ts         # strings estables de estado
+      models/
+        session-profile.ts        # JSON plano {authenticated,id,email,name}
+      services/
+        navigation/
+          external-navigation.ts  # salida de la SPA hacia panel-api/OAuth
+        session/
+          panel-session.ts        # cliente HTTP tipado → solo {API}/panel/identity/*
+          session.ts              # estado (signals) + acciones entrar/salir/hidratar
+    views/
+      home/
+        home.ts / home.html       # contenido routeado del home del panel
+```
+
+- Scope Rule: `session-bar` es chrome compartido del shell → `core/components/session-bar/`.
+- Sesión es singleton de app → `core/services/session/` (`providedIn: 'root'`).
+- Enrutado: `app.routes.ts` monta `HomeView` en `''` sin guards de login; `App` mantiene el shell persistente alrededor de `<router-outlet />`.
+- Nombres sin sufijos `.component` / `.service`; `inject()`; miembros de plantilla `protected` cuando aplique; signals para estado.
+
+### Capas
+
+| Capa | Responsabilidad | No hace |
+|------|-----------------|---------|
+| Presentación (`App`, `HomeView`, `session-bar`) | Admin UI; shell persistente; contenido routeado; botones; nombre/correo; avisos no bloqueantes | No construye URLs de API ni interpreta HTTP crudo |
+| Estado (`session`) | Fuente de verdad en memoria: anónimo \| autenticado + perfil; avisos; hidratar / entrar / salir | No persiste cuenta en `localStorage` / IndexedDB; no guarda client id de Google |
+| HTTP (`panel-session`) | `GET …/panel/identity/session`, `DELETE …/panel/identity/session` con `withCredentials` / `credentials: 'include'`; navegación a `…/panel/identity/login/google` vía `ExternalNavigation` | No llama account-api, APIs Java ni Google |
+| Configuración (`environment`) | `{API}` = `apiBaseUrl` por entorno | No embebe secretos ni `GOOGLE_CLIENT_ID` |
+
+### Principios
+
+- Login Google = **navegación completa del navegador** a `{apiBaseUrl}/panel/identity/login/google` (RF-5), no XHR que espere una `authorizationUrl`.
+- La cookie `fes_session` la gestiona el backend; el front solo envía credenciales en session/logout.
+- Fallos de sesión o logout no convierten el panel en muro de login (RF-2, RF-15, RF-16).
+- Textos de interfaz en español; contraste y foco visibles; controles ≥ 44 px; `role="alert"` / región viva para avisos (`/ui-ux-pro-max`).
+
+## Desglose técnico por capacidad
+
+### 1. Presentación Admin UI y uso sin autenticación
+
+**Cubre:** RF-1, RF-2
+
+- Layout Admin UI en `App` (`app.ts` / `app.html`): aside persistente «Friendly / Panel» + `<router-outlet />`; contenido operativo inicial en `views/home/home.ts`, montado por `app.routes.ts`.
+- Ningún route guard ni interceptor que exija sesión o redirija a login.
+- El contenido del panel permanece usable con o sin sesión; la barra de sesión es opcional y no bloquea.
+
+### 2. Controles de sesión en el shell (mutuamente excluyentes)
+
+**Cubre:** RF-3, RF-4, RF-12
+
+- Sin sesión: botón «Entrar con Google»; **no** mostrar «Salir»; **no** mostrar nombre/correo.
+- Con sesión: «Salir» + nombre + correo; **no** mostrar «Entrar con Google».
+- Ubicar controles en el aside del Admin UI (coherente con el shell actual), operable por teclado y responsive desde 320 px.
+
+### 3. Configuración del anfitrión de API
+
+**Cubre:** RF-9, RF-10
+
+- `src/environments/environment.ts` y `environment.development.ts` con `apiBaseUrl` sin barra final: actualmente ambos usan `https://api.friendly-e-shop.duckdns.org` (pueden divergir vía `fileReplacements` / build cuando haga falta).
+- `angular.json` ya apunta esos replacements en `development`.
+- Checklist: cero literales de client id / secret de Google en código, environments, templates o tests (RF-10).
+
+### 4. Cliente HTTP solo hacia panel (vía anfitrión configurado)
+
+**Cubre:** RF-6, RF-7, RF-9, RF-11
+
+- `panel-session.ts` con `HttpClient`:
+  - `getSession()` → `GET {apiBaseUrl}/panel/identity/session` con credenciales.
+  - `logout()` → `DELETE {apiBaseUrl}/panel/identity/session` con credenciales.
+  - `enterWithGoogle()` → navegación externa a `{apiBaseUrl}/panel/identity/login/google` mediante `ExternalNavigation`.
+- Tipado de respuesta: JSON plano `{ authenticated, id, email, name }` (`session-profile.ts`: anónimo `authenticated: false`; autenticado exige `id`, `email`, `name`).
+- Prohibido: bases URL de account-api, catalog/order/payment, o endpoints de Google.
+
+### 5. Entrar con Google (navegación)
+
+**Cubre:** RF-5, RF-10, RF-11
+
+- Al pulsar «Entrar con Google»: `ExternalNavigation.navigateTo(apiBaseUrl + '/panel/identity/login/google')` (o equivalente encapsulado).
+- Sin formulario local; sin SDK de Google; sin client id en el cliente.
+- panel-api se encarga de `return_to` hacia el origen del panel (fuera de alcance de este repo).
+
+### 6. Hidratación al cargar y retorno con sesión
+
+**Cubre:** RF-6, RF-13, RF-12
+
+- En `provideAppInitializer` (o equivalente al arranque): llamar `getSession()` con credenciales.
+- Si `authenticated` y hay nombre + correo → estado autenticado; UI con «Salir» (RF-13 tras vuelta de Google con cookie).
+- Si no autenticado → anónimo + «Entrar con Google»; panel usable.
+
+### 7. Retorno de Google sin sesión + indicador en la URL
+
+**Cubre:** RF-14, RF-3
+
+- Tras hidratar (o en paralelo seguro): leer los query params con `Router.parseUrl(router.url)`.
+- Si está presente el **indicador de fallo de entrada** que account-api añade al redirigir (contrato de account-api RF-10; mismo indicador que consumirá la tienda), entonces:
+  - mantener / forzar UI anónima («Entrar con Google»);
+  - mostrar aviso en español: no se pudo entrar;
+  - limpiar ese parámetro de la URL con `router.navigate(..., { queryParamsHandling: 'merge', replaceUrl: true })` para no re-mostrar el aviso en cada refresh.
+- No inventar un segundo indicador propio del panel.
+
+### 8. Fallo al consultar la sesión
+
+**Cubre:** RF-15, RF-2, RF-3
+
+- Si `GET /panel/identity/session` falla (red, 5xx, etc.): panel usable; estado anónimo; «Entrar con Google»; aviso breve en español (p. ej. no se pudo comprobar la sesión).
+- Distinguir “200 + authenticated: false” (sin aviso de fallo) de error de consulta (con aviso).
+
+### 9. Salir y efecto en la sesión compartida
+
+**Cubre:** RF-7, RF-8, RF-4, RF-16
+
+- Al pulsar «Salir»: `DELETE {apiBaseUrl}/panel/identity/session` con credenciales.
+- Éxito → estado anónimo, «Entrar con Google»; la invalidación de `fes_session` en el dominio compartido es responsabilidad de panel-api/account-api — el front no llama a la tienda; RF-8 se cumple por el contrato compartido al completar el logout con éxito.
+- Fallo → **mantener** autenticado, seguir mostrando «Salir» (y perfil), aviso de que no se pudo salir (RF-16).
+
+## Contrato consumido (dependencia externa, no implementar aquí)
+
+| Operación | Método y path | Credenciales | Rol en este plan |
+|-----------|---------------|--------------|------------------|
+| Iniciar Google | `GET {API}/panel/identity/login/google` | Navegación browser | RF-5 |
+| Consultar sesión | `GET {API}/panel/identity/session` | Sí | RF-6, RF-12–RF-15 |
+| Cerrar sesión | `DELETE {API}/panel/identity/session` | Sí | RF-7, RF-8, RF-16 |
+
+Respuesta de sesión (vía panel-api): JSON plano `{ authenticated, id?, email?, name? }` (RF-12). Errores de disponibilidad (p. ej. 503) → rama RF-15 / RF-16 según la operación.
+
+## Cambios de UI (Admin Panel)
+
+- Conservar atmósfera Admin UI actual (RF-1): Tailwind + Fira Sans / Fira Code; no rediseñar el hero operativo en este corte.
+- Textos: «Entrar con Google», «Salir», avisos en español.
+- Avisos no bloqueantes con `role="alert"` (o live region), foco visible, contraste adecuado.
+- Responsive ≥ 320 px; botones accionables por teclado.
+
+## Bootstrap Angular
+
+- `provideRouter(routes)` desde `app.routes.ts` (ruta `''` → `HomeView`).
+- `provideHttpClient()` en `app.config.ts` / `bootstrapApplication`.
+- `provideAppInitializer` → `inject(Session).hydrate()` (consulta sesión + lectura del indicador de URL).
+- Environments vía imports de `environment`; sin URLs hardcodeadas en componentes.
+
+## Pruebas y verificación
+
+Alineado con `AGENTS.md` (`npm test` = unit + lint + build) y criterios de finalización de la spec:
+
+| Verificación | RF |
+|--------------|-----|
+| Aspecto Admin UI (móvil / escritorio) | RF-1 |
+| Panel usable sin login | RF-2 |
+| Sin sesión → «Entrar con Google», sin «Salir» | RF-3 |
+| Con sesión → «Salir», sin «Entrar con Google» | RF-4 |
+| Clic Entrar → navegación a `{API}/panel/identity/login/google` | RF-5 |
+| Al cargar → `GET {API}/panel/identity/session` con credenciales | RF-6 |
+| Salir → `DELETE {API}/panel/identity/session` con credenciales | RF-7 |
+| Logout OK → anónimo; sesión compartida inválida también para tienda (demo) | RF-8 |
+| Solo host `{API}` configurado | RF-9 |
+| Sin Google client id en bundle | RF-10 |
+| Sin llamadas a account-api / APIs Java / Google desde el panel | RF-11 |
+| Con sesión → nombre y correo | RF-12 |
+| Retorno Google con sesión → «Salir» | RF-13 |
+| Retorno con indicador URL → Entrar + aviso | RF-14 |
+| Fallo GET session → usable + Entrar + aviso | RF-15 |
+| Fallo logout → sigue «Salir» + aviso | RF-16 |
+
+Unitarios prioritarios: `session` (transiciones hydrate / logout éxito-error / indicador URL) con `HttpClientTestingModule` o mocks; el flujo OAuth completo por demo manual.
+
+## Fuera de alcance (no implementar en este plan)
+
+- Implementar panel-api / account-api / infra.
+- Llamadas a account-api, APIs Java o Google desde el panel.
+- Publicar catálogos, alta de tienda, membresía de vendedor.
+- Incluir `GOOGLE_CLIENT_ID` en el front.
+- Keycloak u otros métodos de auth no descritos.
+
+## Orden de implementación sugerido
+
+1. Environments + `provideHttpClient` + esqueleto `core/services/session` y `panel-session` — RF-9, RF-10, RF-11.
+2. Shell Admin UI persistente en `App`, vista routeada `HomeView` y `session-bar` presentacional — RF-1, RF-2, RF-3, RF-4.
+3. Hidratación `GET /panel/identity/session` + pintar perfil — RF-6, RF-12, RF-13, RF-15.
+4. Navegación «Entrar con Google» — RF-5.
+5. Indicador de fallo en URL — RF-14.
+6. Logout + manejo de error — RF-7, RF-8, RF-16.
+7. Barrido de frontera (red / código) + `npm test` + demo manual móvil/escritorio.
+
+## Matriz de cobertura de RF
+
+| RF | Sección del plan |
+|----|------------------|
+| RF-1 | §1 Presentación Admin UI |
+| RF-2 | §1 Uso sin autenticación; §8 |
+| RF-3 | §2 Controles sin sesión; §7 |
+| RF-4 | §2 Controles con sesión; §9 |
+| RF-5 | §5 Entrar con Google |
+| RF-6 | §4 Cliente HTTP; §6 Hidratación |
+| RF-7 | §4 Cliente HTTP; §9 Salir |
+| RF-8 | §9 Salir y sesión compartida |
+| RF-9 | §3 Configuración; §4 Cliente HTTP |
+| RF-10 | §3 Configuración; §5 Entrar |
+| RF-11 | §4 Cliente HTTP; §5 Entrar |
+| RF-12 | §2 Controles; §6 Hidratación |
+| RF-13 | §6 Retorno con sesión |
+| RF-14 | §7 Indicador en URL |
+| RF-15 | §8 Fallo al consultar sesión |
+| RF-16 | §9 Fallo al cerrar sesión |
+
+**Cobertura:** RF-1 … RF-16 (todos).
