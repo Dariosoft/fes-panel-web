@@ -51,7 +51,10 @@ describe('CatalogListView', () => {
     const buttons = Array.from(
       fixture.nativeElement.querySelectorAll('button'),
     ) as HTMLButtonElement[];
-    const found = buttons.find((button) => button.textContent?.trim() === label);
+    const found = buttons.find(
+      (button) =>
+        button.textContent?.trim() === label || button.getAttribute('aria-label') === label,
+    );
     if (!found) {
       throw new Error(`No se encontró el botón ${label}`);
     }

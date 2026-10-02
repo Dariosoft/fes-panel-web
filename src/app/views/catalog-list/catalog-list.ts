@@ -1,6 +1,7 @@
 import { NgClass } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Eye, EyeOff, Funnel, FunnelX, LucideAngularModule, Pencil, Trash2 } from 'lucide-angular';
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
 import { ProductGallery } from '../../core/components/product-gallery/product-gallery';
 import { ProductStatus } from '../../core/components/product-status/product-status';
@@ -34,7 +35,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 @Component({
   selector: 'app-catalog-list-view',
   standalone: true,
-  imports: [NgClass, RouterLink, ProductStatus, ProductGallery, ConfirmDialog],
+  imports: [NgClass, RouterLink, LucideAngularModule, ProductStatus, ProductGallery, ConfirmDialog],
   templateUrl: './catalog-list.html',
   host: { class: 'flex min-h-0 flex-1 flex-col gap-4' },
 })
@@ -47,6 +48,12 @@ export class CatalogListView implements OnInit {
   readonly error = this.catalog.error;
   readonly filter = this.catalog.filter;
   readonly filterDraft = signal('');
+  readonly applyIcon = Funnel;
+  readonly clearIcon = FunnelX;
+  readonly publishIcon = Eye;
+  readonly unpublishIcon = EyeOff;
+  readonly editIcon = Pencil;
+  readonly deleteIcon = Trash2;
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);

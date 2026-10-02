@@ -6,17 +6,19 @@
     </div>
     <button
       type="button"
-      class="inline-flex min-h-11 w-full cursor-pointer items-center rounded-md border border-border bg-transparent px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      class="inline-flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
       (click)="logout.emit()"
     >
+      <lucide-icon [img]="logoutIcon" [size]="18" aria-hidden="true" />
       Salir
     </button>
   } @else {
     <button
       type="button"
-      class="inline-flex min-h-11 w-full cursor-pointer items-center rounded-md bg-accent px-3 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      class="inline-flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
       (click)="enterWithGoogle.emit()"
     >
+      <lucide-icon [img]="loginIcon" [size]="18" aria-hidden="true" />
       Entrar con Google
     </button>
   }
