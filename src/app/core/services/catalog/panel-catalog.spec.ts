@@ -2,7 +2,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
-import { EditableProduct } from '../../models/catalog-product';
+import { CatalogProduct, EditableProduct } from '../../models/catalog-product';
 import { PanelCatalog } from './panel-catalog';
 
 describe('PanelCatalog', () => {
@@ -37,6 +37,55 @@ describe('PanelCatalog', () => {
     expect(request.request.method).toBe('GET');
     expect(request.request.withCredentials).toBe(true);
     request.flush([]);
+  });
+
+  it('maps server ownership, origin and images from the API payload', () => {
+    let products: CatalogProduct[] | undefined;
+    panelCatalog.list().subscribe((result) => (products = result));
+
+    const request = httpTesting.expectOne(`${baseUrl}/products`);
+    request.flush([
+      {
+        id: 'product-1',
+        ownerAccountId: 'account-1',
+        name: 'Mate',
+        price: 1500,
+        currency: 'ARS',
+        stock: null,
+        stage: 'draft',
+        images: [{ id: 'image-1', url: 'https://api/catalog/images/image-1' }],
+        createdAt: '2026-01-01T00:00:00Z',
+      },
+    ]);
+
+    expect(products?.[0].owned).toBe(true);
+    expect(products?.[0].origin).toBe('server');
+    expect(products?.[0].stock).toBeUndefined();
+    expect(products?.[0].images).toEqual([
+      { id: 'image-1', url: 'https://api/catalog/images/image-1' },
+    ]);
+  });
+
+  it('treats products without an owner as unowned', () => {
+    let products: CatalogProduct[] | undefined;
+    panelCatalog.list().subscribe((result) => (products = result));
+
+    const request = httpTesting.expectOne(`${baseUrl}/products`);
+    request.flush([
+      {
+        id: 'product-2',
+        ownerAccountId: null,
+        name: 'Termo',
+        price: 2500,
+        currency: 'USD',
+        stock: 5,
+        stage: 'published',
+        images: [],
+        createdAt: '2026-01-02T00:00:00Z',
+      },
+    ]);
+
+    expect(products?.[0].owned).toBe(false);
   });
 
   it('creates products as multipart with credentials', () => {
@@ -96,6 +145,6 @@ describe('PanelCatalog', () => {
     const request = httpTesting.expectOne(`${baseUrl}/publish`);
     expect(request.request.method).toBe('POST');
     expect(request.request.withCredentials).toBe(true);
-    request.flush([]);
+    request.flush({ published: 0 });
   });
 });

@@ -19,18 +19,24 @@ describe('Catalog', () => {
 
   const productsUrl = `${environment.apiBaseUrl}/panel/catalog/products`;
 
-  const buildProduct = (overrides: Partial<CatalogProduct>): CatalogProduct => ({
-    id: 'product-1',
-    name: 'Mate',
-    price: 1500,
-    currency: 'ARS',
-    stage: PRODUCT_STAGE.draft,
-    owned: true,
-    origin: PRODUCT_ORIGIN.server,
-    images: [],
-    createdAt: '2026-10-01T12:00:00.000Z',
-    ...overrides,
-  });
+  const buildProduct = (
+    overrides: Partial<CatalogProduct> & { ownerAccountId?: string | null },
+  ): CatalogProduct & { ownerAccountId: string | null } => {
+    const owned = overrides.owned ?? true;
+    return {
+      id: 'product-1',
+      name: 'Mate',
+      price: 1500,
+      currency: 'ARS',
+      stage: PRODUCT_STAGE.draft,
+      owned,
+      origin: PRODUCT_ORIGIN.server,
+      images: [],
+      createdAt: '2026-10-01T12:00:00.000Z',
+      ownerAccountId: owned ? 'account-1' : null,
+      ...overrides,
+    };
+  };
 
   beforeEach(() => {
     sessionStorage.clear();
@@ -283,7 +289,7 @@ describe('Catalog', () => {
     httpTesting.expectOne(productsUrl).flush(buildProduct({ id: 'server-2' }));
 
     const publishRequest = httpTesting.expectOne(`${environment.apiBaseUrl}/panel/catalog/publish`);
-    publishRequest.flush([]);
+    publishRequest.flush({ published: 2 });
 
     httpTesting
       .expectOne(productsUrl)

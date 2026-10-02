@@ -9,25 +9,19 @@ describe('ProductStatus', () => {
     fixture = TestBed.createComponent(ProductStatus);
   });
 
-  it('shows the draft stage and owner state', async () => {
+  it('shows the draft stage', async () => {
     fixture.componentRef.setInput('stage', 'draft');
-    fixture.componentRef.setInput('owned', true);
 
     await fixture.whenStable();
 
-    const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Etapa: Borrador');
-    expect(text).toContain('De tu cuenta');
+    expect(fixture.nativeElement.textContent).toContain('Etapa: Borrador');
   });
 
-  it('shows the published stage and no-owner state', async () => {
+  it('shows the published stage', async () => {
     fixture.componentRef.setInput('stage', 'published');
-    fixture.componentRef.setInput('owned', false);
 
     await fixture.whenStable();
 
-    const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Etapa: Publicado');
-    expect(text).toContain('Sin dueño');
+    expect(fixture.nativeElement.textContent).toContain('Etapa: Publicado');
   });
 });

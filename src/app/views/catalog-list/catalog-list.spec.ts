@@ -85,8 +85,8 @@ describe('CatalogListView', () => {
     await createView();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Productos locales');
-    expect(text).not.toContain('De tu cuenta');
+    expect(fixture.nativeElement.querySelector('h2')).toBeNull();
+    expect(text).toContain('Mate');
     expect(catalog.load).toHaveBeenCalled();
   });
 
@@ -99,8 +99,24 @@ describe('CatalogListView', () => {
     await createView();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Locales sin dueño');
-    expect(text).toContain('De tu cuenta');
+    expect(fixture.nativeElement.querySelector('h2')).toBeNull();
+    expect(text).toContain('Mate');
+  });
+
+  it('warns that local products can be lost when closing the page', async () => {
+    catalog.localGroup.set([
+      buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
+    ]);
+    await createView();
+
+    expect(fixture.nativeElement.textContent).toContain('pueden perder');
+  });
+
+  it('does not warn when there are no local products', async () => {
+    catalog.accountGroup.set([buildProduct({ id: 'server-1' })]);
+    await createView();
+
+    expect(fixture.nativeElement.textContent).not.toContain('pueden perder');
   });
 
   it('filters by name through the search input', async () => {

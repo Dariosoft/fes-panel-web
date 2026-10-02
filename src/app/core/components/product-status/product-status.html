@@ -9,15 +9,4 @@
     <span aria-hidden="true">{{ stage() === 'published' ? '●' : '○' }}</span>
     Etapa: {{ stageLabel() }}
   </span>
-
-  <span
-    class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
-    [class.border-accent]="owned()"
-    [class.text-accent]="owned()"
-    [class.border-muted-foreground]="!owned()"
-    [class.text-muted-foreground]="!owned()"
-  >
-    <span aria-hidden="true">{{ owned() ? '✓' : '–' }}</span>
-    {{ ownershipLabel() }}
-  </span>
 </div>

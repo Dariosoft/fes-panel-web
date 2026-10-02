@@ -1,8 +1,26 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { PRODUCT_ORIGIN } from '../../constants/product-origin';
 import { CatalogProduct, EditableProduct } from '../../models/catalog-product';
+
+interface ServerProductImage {
+  id: string;
+  url: string;
+}
+
+interface ServerProduct {
+  id: string;
+  ownerAccountId: string | null;
+  name: string;
+  price: number;
+  currency: CatalogProduct['currency'];
+  stock: number | null;
+  stage: CatalogProduct['stage'];
+  images: ServerProductImage[];
+  createdAt: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PanelCatalog {
@@ -10,23 +28,27 @@ export class PanelCatalog {
   private readonly catalogBaseUrl = `${environment.apiBaseUrl}/panel/catalog`;
 
   list(): Observable<CatalogProduct[]> {
-    return this.http.get<CatalogProduct[]>(`${this.catalogBaseUrl}/products`, {
-      withCredentials: true,
-    });
+    return this.http
+      .get<ServerProduct[]>(`${this.catalogBaseUrl}/products`, { withCredentials: true })
+      .pipe(map((products) => products.map((product) => this.toCatalogProduct(product))));
   }
 
   create(product: EditableProduct): Observable<CatalogProduct> {
-    return this.http.post<CatalogProduct>(`${this.catalogBaseUrl}/products`, this.toFormData(product), {
-      withCredentials: true,
-    });
+    return this.http
+      .post<ServerProduct>(`${this.catalogBaseUrl}/products`, this.toFormData(product), {
+        withCredentials: true,
+      })
+      .pipe(map((created) => this.toCatalogProduct(created)));
   }
 
   update(product: EditableProduct): Observable<CatalogProduct> {
-    return this.http.put<CatalogProduct>(
-      `${this.catalogBaseUrl}/products/${product.id}`,
-      this.toFormData(product),
-      { withCredentials: true },
-    );
+    return this.http
+      .put<ServerProduct>(
+        `${this.catalogBaseUrl}/products/${product.id}`,
+        this.toFormData(product),
+        { withCredentials: true },
+      )
+      .pipe(map((updated) => this.toCatalogProduct(updated)));
   }
 
   delete(id: string): Observable<void> {
@@ -36,21 +58,38 @@ export class PanelCatalog {
   }
 
   publish(id: string): Observable<CatalogProduct> {
-    return this.http.post<CatalogProduct>(`${this.catalogBaseUrl}/products/${id}/publish`, null, {
-      withCredentials: true,
-    });
+    return this.http
+      .post<ServerProduct>(`${this.catalogBaseUrl}/products/${id}/publish`, null, {
+        withCredentials: true,
+      })
+      .pipe(map((published) => this.toCatalogProduct(published)));
   }
 
   unpublish(id: string): Observable<CatalogProduct> {
-    return this.http.post<CatalogProduct>(`${this.catalogBaseUrl}/products/${id}/unpublish`, null, {
-      withCredentials: true,
-    });
+    return this.http
+      .post<ServerProduct>(`${this.catalogBaseUrl}/products/${id}/unpublish`, null, {
+        withCredentials: true,
+      })
+      .pipe(map((unpublished) => this.toCatalogProduct(unpublished)));
   }
 
-  publishCatalog(): Observable<CatalogProduct[]> {
-    return this.http.post<CatalogProduct[]>(`${this.catalogBaseUrl}/publish`, null, {
-      withCredentials: true,
-    });
+  publishCatalog(): Observable<void> {
+    return this.http.post<void>(`${this.catalogBaseUrl}/publish`, {}, { withCredentials: true });
+  }
+
+  private toCatalogProduct(product: ServerProduct): CatalogProduct {
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      currency: product.currency,
+      stock: product.stock ?? undefined,
+      stage: product.stage,
+      owned: product.ownerAccountId != null,
+      origin: PRODUCT_ORIGIN.server,
+      images: (product.images ?? []).map((image) => ({ id: image.id, url: image.url })),
+      createdAt: product.createdAt,
+    };
   }
 
   private toFormData(product: EditableProduct): FormData {

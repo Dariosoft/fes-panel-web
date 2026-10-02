@@ -1,6 +1,8 @@
+import { NgClass } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
+import { ProductGallery } from '../../core/components/product-gallery/product-gallery';
 import { ProductStatus } from '../../core/components/product-status/product-status';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PRODUCT_STAGE } from '../../core/constants/product-stage';
@@ -32,8 +34,9 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 @Component({
   selector: 'app-catalog-list-view',
   standalone: true,
-  imports: [RouterLink, ProductStatus, ConfirmDialog],
+  imports: [NgClass, RouterLink, ProductStatus, ProductGallery, ConfirmDialog],
   templateUrl: './catalog-list.html',
+  host: { class: 'flex flex-col gap-4' },
 })
 export class CatalogListView implements OnInit {
   private readonly catalog = inject(Catalog);
@@ -46,6 +49,8 @@ export class CatalogListView implements OnInit {
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);
+
+  readonly hasLocalProducts = computed(() => this.catalog.localGroup().length > 0);
 
   readonly groups = computed(() => {
     const groups: { heading: string; products: CatalogProduct[] }[] = [];

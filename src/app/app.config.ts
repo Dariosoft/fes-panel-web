@@ -8,7 +8,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(),
-    // Fire-and-forget session hydration keeps the admin shell responsive while session state loads.
-    provideAppInitializer(() => inject(Session).hydrate()),
+    // Wait for session hydration so every view renders with the resolved auth state.
+    provideAppInitializer(() => {
+      const session = inject(Session);
+      session.hydrate();
+      return session.whenHydrated;
+    }),
   ],
 };

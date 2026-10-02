@@ -8,10 +8,8 @@ import { PRODUCT_STAGE, ProductStage } from '../../constants/product-stage';
 })
 export class ProductStatus {
   readonly stage = input.required<ProductStage>();
-  readonly owned = input.required<boolean>();
 
   readonly stageLabel = computed(() =>
     this.stage() === PRODUCT_STAGE.published ? 'Publicado' : 'Borrador',
   );
-  readonly ownershipLabel = computed(() => (this.owned() ? 'De tu cuenta' : 'Sin dueño'));
 }

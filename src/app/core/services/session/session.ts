@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { timeout } from 'rxjs';
 import { SESSION_STATUS, SessionStatus } from '../../constants/session-status';
 import { AuthenticatedSessionProfile } from '../../models/session-profile';
 import { PanelSession } from './panel-session';
@@ -20,21 +21,32 @@ export class Session {
   readonly notice = this.noticeSignal.asReadonly();
   readonly authenticated = computed(() => this.statusSignal() === SESSION_STATUS.authenticated);
 
+  private resolveHydrated!: () => void;
+
+  readonly whenHydrated = new Promise<void>((resolve) => {
+    this.resolveHydrated = resolve;
+  });
+
   hydrate(): void {
-    this.panelSession.getSession().subscribe({
-      next: (session) => {
-        if (session.authenticated && session.name && session.email) {
-          this.setAuthenticated(session);
-        } else {
-          this.setAnonymous();
-        }
-        this.applyLoginErrorFromUrl();
-      },
-      error: () => {
-        this.setAnonymous('No se pudo comprobar la sesión.');
-        this.applyLoginErrorFromUrl();
-      },
-    });
+    this.panelSession
+      .getSession()
+      .pipe(timeout(5000))
+      .subscribe({
+        next: (session) => {
+          if (session.authenticated && session.name && session.email) {
+            this.setAuthenticated(session);
+          } else {
+            this.setAnonymous();
+          }
+          this.applyLoginErrorFromUrl();
+          this.resolveHydrated();
+        },
+        error: () => {
+          this.setAnonymous('No se pudo comprobar la sesión.');
+          this.applyLoginErrorFromUrl();
+          this.resolveHydrated();
+        },
+      });
   }
 
   enterWithGoogle(): void {
