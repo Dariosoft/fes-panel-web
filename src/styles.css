@@ -21,6 +21,12 @@
   --color-ring: #ffffff;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   min-width: 320px;
+  overflow: hidden;
 }

@@ -11,7 +11,7 @@ import { Session } from '../../core/services/session/session';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, ProductImages],
   templateUrl: './catalog-form.html',
-  host: { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto' },
+  host: { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4 md:pb-6' },
 })
 export class CatalogFormView implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

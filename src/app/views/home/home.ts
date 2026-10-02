@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-home-view',
   standalone: true,
   templateUrl: './home.html',
-  host: { class: 'block min-h-0 flex-1 overflow-y-auto' },
+  host: { class: 'block min-h-0 flex-1 overflow-y-auto pb-4 md:pb-6' },
 })
 export class HomeView {}
