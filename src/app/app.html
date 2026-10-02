@@ -1,14 +1,32 @@
 <div class="flex h-dvh flex-col overflow-hidden md:flex-row">
   <aside
-    class="flex shrink-0 flex-col gap-6 overflow-y-auto border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:h-full md:w-60 md:justify-between md:border-r md:border-b-0"
+    class="flex shrink-0 flex-col gap-6 overflow-y-auto border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md transition-[width] duration-200 md:h-full md:justify-between md:border-r md:border-b-0"
+    [ngClass]="collapsed() ? 'md:w-16 md:px-2' : 'md:w-60'"
   >
     <div class="flex flex-col gap-6">
-      <div class="flex items-center gap-3">
+      <div
+        class="flex items-center gap-3"
+        [ngClass]="collapsed() ? 'md:flex-col md:items-center md:gap-2' : ''"
+      >
         <img class="size-11 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
-        <div>
+        <div class="min-w-0" [ngClass]="collapsed() ? 'md:hidden' : ''">
           <p class="font-mono text-xs tracking-widest text-accent uppercase">Friendly</p>
           <p class="font-mono text-base font-medium text-on-primary">Panel</p>
         </div>
+        <button
+          type="button"
+          class="hidden shrink-0 cursor-pointer items-center justify-center rounded-md text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none md:inline-flex md:size-9"
+          [ngClass]="collapsed() ? '' : 'md:ml-auto'"
+          [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+          [title]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+          (click)="toggleSidebar()"
+        >
+          <lucide-icon
+            [img]="collapsed() ? expandIcon : collapseIcon"
+            [size]="18"
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <nav aria-label="Secciones del panel">
@@ -19,9 +37,12 @@
               routerLinkActive="bg-accent text-on-accent"
               [routerLinkActiveOptions]="{ exact: true }"
               class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
+              [attr.aria-label]="collapsed() ? 'Inicio' : null"
+              [title]="collapsed() ? 'Inicio' : ''"
             >
               <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
-              Inicio
+              <span [ngClass]="collapsed() ? 'md:hidden' : ''">Inicio</span>
             </a>
           </li>
           <li>
@@ -29,9 +50,12 @@
               routerLink="/catalog"
               routerLinkActive="bg-accent text-on-accent"
               class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
+              [attr.aria-label]="collapsed() ? 'Catálogo' : null"
+              [title]="collapsed() ? 'Catálogo' : ''"
             >
               <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
-              Catálogo
+              <span [ngClass]="collapsed() ? 'md:hidden' : ''">Catálogo</span>
             </a>
           </li>
         </ul>
@@ -39,6 +63,7 @@
     </div>
 
     <app-session-bar
+      [collapsed]="collapsed()"
       [authenticated]="session.authenticated()"
       [name]="session.profile()?.name ?? ''"
       [email]="session.profile()?.email ?? ''"
