@@ -88,6 +88,15 @@ describe('PanelCatalog', () => {
     expect(products?.[0].owned).toBe(false);
   });
 
+  it('adds the name filter to the list request', () => {
+    panelCatalog.list('mat').subscribe();
+
+    const request = httpTesting.expectOne(`${baseUrl}/products?name=mat`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush([]);
+  });
+
   it('creates products as multipart with credentials', () => {
     const file = new File(['image'], 'mate.png', { type: 'image/png' });
 

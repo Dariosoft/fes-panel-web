@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -27,9 +27,10 @@ export class PanelCatalog {
   private readonly http = inject(HttpClient);
   private readonly catalogBaseUrl = `${environment.apiBaseUrl}/panel/catalog`;
 
-  list(): Observable<CatalogProduct[]> {
+  list(name?: string): Observable<CatalogProduct[]> {
+    const params = name ? new HttpParams().set('name', name) : undefined;
     return this.http
-      .get<ServerProduct[]>(`${this.catalogBaseUrl}/products`, { withCredentials: true })
+      .get<ServerProduct[]>(`${this.catalogBaseUrl}/products`, { withCredentials: true, params })
       .pipe(map((products) => products.map((product) => this.toCatalogProduct(product))));
   }
 

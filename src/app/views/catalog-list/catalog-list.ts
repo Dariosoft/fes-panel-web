@@ -36,7 +36,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
   standalone: true,
   imports: [NgClass, RouterLink, ProductStatus, ProductGallery, ConfirmDialog],
   templateUrl: './catalog-list.html',
-  host: { class: 'flex flex-col gap-4' },
+  host: { class: 'flex min-h-0 flex-1 flex-col gap-4' },
 })
 export class CatalogListView implements OnInit {
   private readonly catalog = inject(Catalog);
@@ -46,6 +46,7 @@ export class CatalogListView implements OnInit {
   readonly loading = this.catalog.loading;
   readonly error = this.catalog.error;
   readonly filter = this.catalog.filter;
+  readonly filterDraft = signal('');
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);
@@ -106,8 +107,17 @@ export class CatalogListView implements OnInit {
     this.catalog.load();
   }
 
-  onSearch(event: Event): void {
-    this.catalog.setFilter((event.target as HTMLInputElement).value);
+  onFilterInput(event: Event): void {
+    this.filterDraft.set((event.target as HTMLInputElement).value);
+  }
+
+  applyFilters(): void {
+    this.catalog.applyFilter(this.filterDraft());
+  }
+
+  clearFilters(): void {
+    this.filterDraft.set('');
+    this.catalog.clearFilters();
   }
 
   isDraft(product: CatalogProduct): boolean {

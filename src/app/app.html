@@ -1,6 +1,6 @@
-<div class="flex min-h-dvh flex-col md:flex-row">
+<div class="flex h-dvh flex-col overflow-hidden md:flex-row">
   <aside
-    class="flex flex-col gap-6 border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:w-60 md:shrink-0 md:justify-between md:border-r md:border-b-0"
+    class="flex shrink-0 flex-col gap-6 overflow-y-auto border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:h-full md:w-60 md:justify-between md:border-r md:border-b-0"
   >
     <div class="flex flex-col gap-6">
       <div class="flex items-center gap-3">
@@ -13,6 +13,16 @@
 
       <nav aria-label="Secciones del panel">
         <ul class="flex flex-col gap-1">
+          <li>
+            <a
+              routerLink="/"
+              routerLinkActive="bg-accent text-on-accent"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="inline-flex min-h-11 w-full items-center rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            >
+              Inicio
+            </a>
+          </li>
           <li>
             <a
               routerLink="/catalog"
@@ -36,7 +46,7 @@
     />
   </aside>
 
-  <main class="flex flex-1 flex-col gap-3 p-4 md:p-6">
+  <main class="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-4 md:p-6">
     <router-outlet />
   </main>
 </div>

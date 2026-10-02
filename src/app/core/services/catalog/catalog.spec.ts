@@ -98,7 +98,7 @@ describe('Catalog', () => {
     expect(catalog.accountGroup().map((product) => product.id)).toEqual(['new', 'old']);
   });
 
-  it('filters by name without mutating the source list', () => {
+  it('requests the backend once with the applied name filter', () => {
     authenticated = true;
 
     catalog.load();
@@ -107,11 +107,13 @@ describe('Catalog', () => {
       buildProduct({ id: 'termo', name: 'Termo' }),
     ]);
 
-    catalog.setFilter('mat');
+    catalog.applyFilter('mat');
+
+    httpTesting
+      .expectOne(`${productsUrl}?name=mat`)
+      .flush([buildProduct({ id: 'mate', name: 'Mate' })]);
 
     expect(catalog.accountGroup().map((product) => product.id)).toEqual(['mate']);
-    catalog.setFilter('');
-    expect(catalog.accountGroup()).toHaveLength(2);
   });
 
   it('saves locally without touching the network when there is no session', () => {

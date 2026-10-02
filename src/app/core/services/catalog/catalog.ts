@@ -27,10 +27,10 @@ export class Catalog {
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
 
-  readonly localGroup = computed(() => this.sortByNewest(this.applyFilter(this.localProductsSignal())));
-  readonly accountGroup = computed(() =>
-    this.sortByNewest(this.applyFilter(this.serverProductsSignal())),
+  readonly localGroup = computed(() =>
+    this.sortByNewest(this.applyLocalFilter(this.localProductsSignal())),
   );
+  readonly accountGroup = computed(() => this.sortByNewest(this.serverProductsSignal()));
   readonly canPublishCatalog = computed(() =>
     [...this.localProductsSignal(), ...this.serverProductsSignal()].some(
       (product) => product.stage === PRODUCT_STAGE.draft,
@@ -45,8 +45,18 @@ export class Catalog {
     });
   }
 
-  setFilter(name: string): void {
-    this.filterSignal.set(name);
+  applyFilter(name: string): void {
+    this.filterSignal.set(name.trim());
+    if (this.session.authenticated()) {
+      this.refreshServerProducts();
+    }
+  }
+
+  clearFilters(): void {
+    this.filterSignal.set('');
+    if (this.session.authenticated()) {
+      this.refreshServerProducts();
+    }
   }
 
   resumePending(): void {
@@ -88,9 +98,13 @@ export class Catalog {
       return;
     }
 
+    this.refreshServerProducts();
+  }
+
+  private refreshServerProducts(): void {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
-    this.panelCatalog.list().subscribe({
+    this.panelCatalog.list(this.filterSignal()).subscribe({
       next: (products) => {
         this.serverProductsSignal.set(products);
         this.loadingSignal.set(false);
@@ -313,7 +327,7 @@ export class Catalog {
     return `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
-  private applyFilter(products: CatalogProduct[]): CatalogProduct[] {
+  private applyLocalFilter(products: CatalogProduct[]): CatalogProduct[] {
     const term = this.filterSignal().trim().toLowerCase();
     if (!term) {
       return products;

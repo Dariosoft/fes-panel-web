@@ -34,7 +34,8 @@ describe('CatalogListView', () => {
     accountGroup: signal<CatalogProduct[]>([]),
     canPublishCatalog: signal(false),
     load: vi.fn(),
-    setFilter: vi.fn(),
+    applyFilter: vi.fn(),
+    clearFilters: vi.fn(),
     publish: vi.fn(() => of(buildProduct({}))),
     unpublish: vi.fn(() => of(buildProduct({ stage: PRODUCT_STAGE.draft }))),
     remove: vi.fn(() => of(undefined)),
@@ -66,7 +67,8 @@ describe('CatalogListView', () => {
     catalog.accountGroup.set([]);
     catalog.canPublishCatalog.set(false);
     catalog.load.mockClear();
-    catalog.setFilter.mockClear();
+    catalog.applyFilter.mockClear();
+    catalog.clearFilters.mockClear();
     catalog.publish.mockClear();
 
     TestBed.configureTestingModule({
@@ -119,7 +121,7 @@ describe('CatalogListView', () => {
     expect(fixture.nativeElement.textContent).not.toContain('pueden perder');
   });
 
-  it('filters by name through the search input', async () => {
+  it('applies the configured filters only through the button', async () => {
     catalog.localGroup.set([
       buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
     ]);
@@ -130,7 +132,24 @@ describe('CatalogListView', () => {
     input.dispatchEvent(new Event('input'));
     await fixture.whenStable();
 
-    expect(catalog.setFilter).toHaveBeenCalledWith('mat');
+    expect(catalog.applyFilter).not.toHaveBeenCalled();
+
+    findButton('Aplicar filtros').click();
+    await fixture.whenStable();
+
+    expect(catalog.applyFilter).toHaveBeenCalledWith('mat');
+  });
+
+  it('clears every filter through the button', async () => {
+    catalog.localGroup.set([
+      buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
+    ]);
+    await createView();
+
+    findButton('Eliminar filtros').click();
+    await fixture.whenStable();
+
+    expect(catalog.clearFilters).toHaveBeenCalled();
   });
 
   it('disables publish without a session', async () => {

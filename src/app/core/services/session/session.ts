@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { timeout } from 'rxjs';
 import { SESSION_STATUS, SessionStatus } from '../../constants/session-status';
 import { AuthenticatedSessionProfile } from '../../models/session-profile';
+import { ExternalNavigation } from '../navigation/external-navigation';
 import { PanelSession } from './panel-session';
 
 const LOGIN_ERROR_PARAM = 'login_error';
@@ -11,6 +12,7 @@ const LOGIN_ERROR_PARAM = 'login_error';
 export class Session {
   private readonly panelSession = inject(PanelSession);
   private readonly router = inject(Router);
+  private readonly externalNavigation = inject(ExternalNavigation);
 
   private readonly statusSignal = signal<SessionStatus>(SESSION_STATUS.anonymous);
   private readonly profileSignal = signal<AuthenticatedSessionProfile | null>(null);
@@ -50,14 +52,22 @@ export class Session {
   }
 
   enterWithGoogle(): void {
-    this.panelSession.enterWithGoogle();
+    this.panelSession.enterWithGoogle(this.currentPath());
   }
 
   logout(): void {
     this.panelSession.logout().subscribe({
-      next: () => this.setAnonymous(),
+      next: () => {
+        this.setAnonymous();
+        this.externalNavigation.reload();
+      },
       error: () => this.noticeSignal.set('No se pudo salir.'),
     });
+  }
+
+  private currentPath(): string {
+    const url = this.router.url;
+    return url.startsWith('/') ? url : `/${url}`;
   }
 
   private applyLoginErrorFromUrl(): void {

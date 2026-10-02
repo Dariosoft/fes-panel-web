@@ -53,4 +53,12 @@ describe('PanelSession', () => {
       `${environment.apiBaseUrl}/panel/identity/login/google`,
     );
   });
+
+  it('carries the current path as return_to', () => {
+    panelSession.enterWithGoogle('/catalog?page=1');
+
+    expect(externalNavigation.navigateTo).toHaveBeenCalledWith(
+      `${environment.apiBaseUrl}/panel/identity/login/google?return_to=%2Fcatalog%3Fpage%3D1`,
+    );
+  });
 });
