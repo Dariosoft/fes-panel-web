@@ -1,0 +1,78 @@
+<div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-2">
+    <label for="product-images-input" class="text-sm font-medium text-foreground">Imágenes</label>
+    <input
+      id="product-images-input"
+      type="file"
+      accept="image/*"
+      multiple
+      class="block w-full text-sm text-muted-foreground file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      (change)="onFilesSelected($event)"
+    />
+
+    @if (authenticated()) {
+      <p class="text-xs text-muted-foreground">Hasta 10 imágenes de 2 MB cada una.</p>
+    } @else {
+      <p class="text-xs text-muted-foreground">
+        Sin sesión podés adjuntar 1 imagen. Iniciá sesión para adjuntar hasta 10.
+      </p>
+    }
+
+    @if (errorMessage()) {
+      <p class="text-xs text-destructive" role="alert">{{ errorMessage() }}</p>
+    }
+  </div>
+
+  @if (currentImage(); as image) {
+    <div
+      class="flex flex-col gap-2 rounded-md border border-border bg-card p-3"
+      tabindex="0"
+      role="group"
+      aria-roledescription="carrusel"
+      aria-label="Imágenes del producto"
+      (keydown)="onCarouselKeydown($event)"
+    >
+      <img
+        [src]="image.dataUrl ?? image.url"
+        [alt]="image.name ?? 'Imagen del producto'"
+        class="h-48 w-full rounded-md object-contain"
+      />
+
+      <div class="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          aria-label="Imagen anterior"
+          (click)="previous()"
+        >
+          ‹
+        </button>
+
+        <span class="font-mono text-xs text-muted-foreground" aria-live="polite">{{ indexLabel() }}</span>
+
+        <button
+          type="button"
+          class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          aria-label="Imagen siguiente"
+          (click)="next()"
+        >
+          ›
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="inline-flex min-h-11 items-center justify-center rounded-md border border-destructive px-3 text-sm font-medium text-destructive hover:bg-destructive/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        (click)="removeCurrent()"
+      >
+        Quitar imagen
+      </button>
+    </div>
+  } @else {
+    <p
+      class="flex h-48 items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground"
+    >
+      Todavía no hay imágenes.
+    </p>
+  }
+</div>
