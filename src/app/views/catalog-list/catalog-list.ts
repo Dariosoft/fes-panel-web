@@ -1,7 +1,17 @@
 import { NgClass } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Eye, EyeOff, Funnel, FunnelX, LucideAngularModule, Pencil, Trash2 } from 'lucide-angular';
+import {
+  EllipsisVertical,
+  Eye,
+  EyeOff,
+  Funnel,
+  FunnelX,
+  LucideAngularModule,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-angular';
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
 import { ProductGallery } from '../../core/components/product-gallery/product-gallery';
 import { ProductStatus } from '../../core/components/product-status/product-status';
@@ -54,6 +64,10 @@ export class CatalogListView implements OnInit {
   readonly unpublishIcon = EyeOff;
   readonly editIcon = Pencil;
   readonly deleteIcon = Trash2;
+  readonly publishCatalogIcon = Eye;
+  readonly newProductIcon = Plus;
+  readonly actionsIcon = EllipsisVertical;
+  readonly actionsOpen = signal(false);
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);
@@ -125,6 +139,14 @@ export class CatalogListView implements OnInit {
   clearFilters(): void {
     this.filterDraft.set('');
     this.catalog.clearFilters();
+  }
+
+  toggleActions(): void {
+    this.actionsOpen.update((value) => !value);
+  }
+
+  closeActions(): void {
+    this.actionsOpen.set(false);
   }
 
   isDraft(product: CatalogProduct): boolean {
