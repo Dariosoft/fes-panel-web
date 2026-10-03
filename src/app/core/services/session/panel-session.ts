@@ -23,7 +23,9 @@ export class PanelSession {
     });
   }
 
-  enterWithGoogle(): void {
-    this.externalNavigation.navigateTo(`${this.identityBaseUrl}/login/google`);
+  enterWithGoogle(returnTo?: string): void {
+    const base = `${this.identityBaseUrl}/login/google`;
+    const url = returnTo ? `${base}?return_to=${encodeURIComponent(returnTo)}` : base;
+    this.externalNavigation.navigateTo(url);
   }
 }

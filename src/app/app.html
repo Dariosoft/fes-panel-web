@@ -1,15 +1,147 @@
-<div class="flex min-h-dvh flex-col md:flex-row">
-  <aside
-    class="flex flex-col justify-between gap-6 border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md md:w-60 md:shrink-0 md:border-r md:border-b-0"
+<div class="flex h-dvh flex-col overflow-hidden md:flex-row">
+  <header
+    class="flex items-center gap-2 border-b border-white/20 bg-primary/80 px-3 py-2 backdrop-blur-md md:hidden"
   >
-    <div class="flex items-center gap-3">
-      <img class="size-11 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
-      <div>
-        <p class="font-mono text-xs tracking-widest text-accent uppercase">Friendly</p>
-        <p class="font-mono text-base font-medium text-on-primary">Panel</p>
+    <button
+      type="button"
+      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-1 py-1 text-left transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="mobile-menu"
+      aria-label="Abrir menú"
+      (click)="toggleMenu()"
+    >
+      <img class="size-9 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
+      <span class="truncate font-mono text-base font-medium text-on-primary">Panel</span>
+      <lucide-icon
+        class="ml-auto shrink-0 text-on-primary"
+        [img]="menuOpen() ? closeIcon : menuIcon"
+        [size]="22"
+        aria-hidden="true"
+      />
+    </button>
+
+    @if (session.authenticated()) {
+      <button
+        type="button"
+        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        aria-label="Salir"
+        title="Salir"
+        (click)="session.logout()"
+      >
+        <lucide-icon [img]="logoutIcon" [size]="18" aria-hidden="true" />
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md bg-accent text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        aria-label="Entrar con Google"
+        title="Entrar con Google"
+        (click)="session.enterWithGoogle()"
+      >
+        <lucide-icon [img]="loginIcon" [size]="18" aria-hidden="true" />
+      </button>
+    }
+  </header>
+
+  @if (menuOpen()) {
+    <nav
+      id="mobile-menu"
+      aria-label="Secciones del panel"
+      class="border-b border-white/20 bg-primary/90 px-3 pb-3 backdrop-blur-md md:hidden"
+    >
+      <ul class="flex flex-col gap-1">
+        <li>
+          <a
+            routerLink="/"
+            routerLinkActive="bg-accent text-on-accent"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            (click)="closeMenu()"
+          >
+            <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
+            Inicio
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/catalog"
+            routerLinkActive="bg-accent text-on-accent"
+            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            (click)="closeMenu()"
+          >
+            <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
+            Catálogo
+          </a>
+        </li>
+      </ul>
+    </nav>
+  }
+
+  <aside
+    class="hidden shrink-0 flex-col gap-6 overflow-y-auto border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md transition-[width] duration-200 md:flex md:h-full md:justify-between md:border-r md:border-b-0"
+    [ngClass]="collapsed() ? 'md:w-16 md:px-2' : 'md:w-60'"
+  >
+    <div class="flex flex-col gap-6">
+      <div
+        class="flex items-center gap-3"
+        [ngClass]="collapsed() ? 'md:flex-col md:items-center md:gap-2' : ''"
+      >
+        <img class="size-11 shrink-0" src="/favicon.svg" alt="" aria-hidden="true" />
+        <div class="min-w-0" [ngClass]="collapsed() ? 'md:hidden' : ''">
+          <p class="font-mono text-xs tracking-widest text-accent uppercase">Friendly</p>
+          <p class="font-mono text-base font-medium text-on-primary">Panel</p>
+        </div>
+        <button
+          type="button"
+          class="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+          [ngClass]="collapsed() ? '' : 'md:ml-auto'"
+          [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+          [title]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+          (click)="toggleSidebar()"
+        >
+          <lucide-icon
+            [img]="collapsed() ? expandIcon : collapseIcon"
+            [size]="18"
+            aria-hidden="true"
+          />
+        </button>
       </div>
+
+      <nav aria-label="Secciones del panel">
+        <ul class="flex flex-col gap-1">
+          <li>
+            <a
+              routerLink="/"
+              routerLinkActive="bg-accent text-on-accent"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
+              [attr.aria-label]="collapsed() ? 'Inicio' : null"
+              [title]="collapsed() ? 'Inicio' : ''"
+            >
+              <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
+              <span [ngClass]="collapsed() ? 'md:hidden' : ''">Inicio</span>
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/catalog"
+              routerLinkActive="bg-accent text-on-accent"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
+              [attr.aria-label]="collapsed() ? 'Catálogo' : null"
+              [title]="collapsed() ? 'Catálogo' : ''"
+            >
+              <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
+              <span [ngClass]="collapsed() ? 'md:hidden' : ''">Catálogo</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
+
     <app-session-bar
+      [collapsed]="collapsed()"
       [authenticated]="session.authenticated()"
       [name]="session.profile()?.name ?? ''"
       [email]="session.profile()?.email ?? ''"
@@ -19,7 +151,7 @@
     />
   </aside>
 
-  <main class="flex flex-1 flex-col gap-3 p-4 md:p-6">
+  <main class="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-4 pt-4 md:px-6 md:pt-6">
     <router-outlet />
   </main>
 </div>

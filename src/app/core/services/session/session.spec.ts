@@ -14,7 +14,7 @@ describe('Session', () => {
     navigate: ReturnType<typeof vi.fn>;
     parseUrl: ReturnType<typeof vi.fn>;
   };
-  let externalNavigation: { navigateTo: ReturnType<typeof vi.fn> };
+  let externalNavigation: { navigateTo: ReturnType<typeof vi.fn>; reload: ReturnType<typeof vi.fn> };
   const sessionUrl = `${environment.apiBaseUrl}/panel/identity/session`;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('Session', () => {
         queryParams: url.includes('login_error') ? { login_error: '1' } : {},
       })),
     };
-    externalNavigation = { navigateTo: vi.fn() };
+    externalNavigation = { navigateTo: vi.fn(), reload: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -112,6 +112,7 @@ describe('Session', () => {
     expect(session.authenticated()).toBe(false);
     expect(session.profile()).toBeNull();
     expect(session.notice()).toBeNull();
+    expect(externalNavigation.reload).toHaveBeenCalled();
   });
 
   it('keeps authenticated state and shows notice when logout fails', () => {
@@ -132,13 +133,14 @@ describe('Session', () => {
     expect(session.authenticated()).toBe(true);
     expect(session.profile()?.email).toBe('ada@example.com');
     expect(session.notice()).toBe('No se pudo salir.');
+    expect(externalNavigation.reload).not.toHaveBeenCalled();
   });
 
   it('navigates to panel Google login on enterWithGoogle', () => {
     session.enterWithGoogle();
 
     expect(externalNavigation.navigateTo).toHaveBeenCalledWith(
-      `${environment.apiBaseUrl}/panel/identity/login/google`,
+      `${environment.apiBaseUrl}/panel/identity/login/google?return_to=%2F`,
     );
   });
 });
