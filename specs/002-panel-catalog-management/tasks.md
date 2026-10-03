@@ -88,9 +88,47 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-5, RF-6, RF-7, RF-8, RF-9, RF-19, RF-20, RF-21, RF-29, RF-31, RF-33, RF-34, RF-37, RF-44, RF-53
   **Done when:** los tests cubren los flujos anteriores y pasan con el runner del proyecto.
 
-- [ ] **T19.** Barrido de frontera + `npm test` (unit + lint + build) + demo manual móvil/escritorio de: alta sin sesión, edición, alta con sesión, listado con grupos, publicar, despublicar, eliminar y publicar catálogo con sus modales.
+- [x] **T19.** Barrido de frontera + `npm test` (unit + lint + build) + demo manual móvil/escritorio de: alta sin sesión, edición, alta con sesión, listado, publicar, despublicar, eliminar y publicar catálogo con sus modales.
   **RFs:** RF-1 … RF-53
-  **Done when:** `npm test` pasa; no hay referencias a `fes-catalog-api`, MinIO ni secretos en el bundle; el código no usa `globalThis`, `window.location`, `history`, `firstValueFrom`, `lastValueFrom` ni `.toPromise()` para esta funcionalidad; la demo verifica el checklist de la spec/plan.
+  **Done when:** `npm test` pasa; no hay referencias a `fes-catalog-api`, MinIO ni secretos en el bundle; la demo verifica el checklist de la spec/plan.
+
+## Iteraciones posteriores (as-built)
+
+- [x] **T20.** Incorporar dependencias `@angular/forms` (formularios reactivos) y `lucide-angular` (iconos); reemplazar `provideHttpClient()`/módulos según haga falta sin añadir NgRx.
+  **RFs:** RF-54, RF-55, RF-69, RF-74, RF-78, RF-79
+  **Done when:** `package.json` fija `@angular/forms` y `lucide-angular`, el build resuelve los iconos usados y no se introduce otra librería de estado.
+
+- [x] **T21.** Resolver el filtro por nombre en el backend: `PanelCatalog.list(name?)` con `HttpParams` (`GET /panel/catalog/products?name=...`), `Catalog.applyFilter`/`clearFilters` con `filter` como señal, `applyLocalFilter` para los locales sin dueño y UI en el header con input + «Aplicar filtros» (`Funnel`) + «Eliminar filtros» (`FunnelX`); sin filtrado en vivo (borrador `filterDraft`, aplica con botón o Enter).
+  **RFs:** RF-9, RF-65, RF-66, RF-67, RF-68, RF-69
+  **Done when:** con sesión el filtro dispara `?name=`; sin sesión solo filtra locales en cliente; escribir no filtra; «Aplicar»/Enter aplican y «Eliminar» limpia y recarga.
+
+- [x] **T22.** Ajustar el listado: quitar títulos de grupo visibles (separación solo por `aria-label`), marcar las tarjetas sin dueño con `inset-ring-1 inset-ring-destructive/60` y mostrar un aviso `role="status"` cuando hay productos locales que se pueden perder.
+  **RFs:** RF-24, RF-70, RF-71, RF-72
+  **Done when:** no se ve ningún encabezado de grupo; las tarjetas sin dueño tienen borde rojo; el aviso aparece solo si hay locales.
+
+- [x] **T23.** Ajustar la tarjeta: `ProductStatus` solo con etapa (sin pill de posesión); acciones solo-icono con `aria-label`/`title` (Publicar `Eye`, Despublicar `EyeOff`, Editar `Pencil`, Eliminar `Trash2`); galería de solo lectura `ProductGallery` a la derecha solo si hay imágenes.
+  **RFs:** RF-15, RF-73, RF-74, RF-75, RF-76
+  **Done when:** la tarjeta no muestra posesión; cada acción tiene icono + etiqueta accesible; la galería aparece solo con imágenes y no permite editar.
+
+- [x] **T24.** Rehacer el header de `/catalog`: título a la izquierda y acciones a la derecha con `items-end`, filtro dentro del header; en `sm+` botones inline «Publicar catálogo» (`Eye`) y «Nuevo producto» (`Plus`) con icono+texto; en pantallas chicas un único botón `EllipsisVertical` con menú de esas dos opciones que se cierra al elegir.
+  **RFs:** RF-77, RF-78, RF-79, RF-80
+  **Done when:** en escritorio se ven los dos botones inline; en móvil hay un solo botón con menú; el menú cierra al elegir y las opciones respetan el estado de sesión.
+
+- [x] **T25.** Rediseñar el shell: navegación con iconos (`House`/`Boxes`) y sesión (`LogIn`/`LogOut`); colapso del menú lateral en escritorio (solo iconos, `PanelLeftClose`/`PanelLeftOpen`); barra superior fija en móvil (logo + «Panel» + menú + sesión) con navegación lateral oculta que se abre al tocar y se cierra al elegir.
+  **RFs:** RF-54, RF-55, RF-56, RF-57, RF-58, RF-59
+  **Done when:** el aside colapsa/expande en escritorio sin perder accesibilidad; en móvil la barra abre/cierra el menú y cada opción lo cierra.
+
+- [x] **T26.** Fijar el layout: `h-dvh` en el shell, `html,body{height:100%}` + `body{overflow:hidden}`, header fijo y scroll solo dentro del contenido, con el padding inferior en el contenedor scrollable.
+  **RFs:** RF-60, RF-61
+  **Done when:** el cuerpo no scrollea; el catálogo scrollea internamente sin tapar el header ni recortar el final del listado.
+
+- [x] **T27.** Endurecer la sesión: `provideAppInitializer` que espera `Session.whenHydrated` antes de renderizar; `Session.enterWithGoogle()` envía `return_to` con la ruta actual; `Session.logout()` recarga la página en la ruta actual (`ExternalNavigation.reload()`), sin navegar a home.
+  **RFs:** RF-62, RF-63, RF-64
+  **Done when:** al arrancar con sesión el catálogo carga sin carrera; el login vuelve a la ruta de origen; el logout recarga la ruta actual.
+
+- [x] **T28.** Tests de las iteraciones as-built: filtro backend (`?name=`) y local, header responsive, shell colapsable/móvil, sesión (`whenHydrated`, `return_to`, `reload`), galería y aviso de locales; `npm test` (unit + lint + build) y demo móvil/escritorio.
+  **RFs:** RF-9, RF-54–RF-80
+  **Done when:** los tests nuevos pasan con el runner del proyecto y `npm test` queda en verde.
 
 ## Matriz RF → tareas
 
@@ -149,5 +187,32 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-51 | T4, T19 |
 | RF-52 | T4, T19 |
 | RF-53 | T5, T17, T18, T19 |
+| RF-54 | T20, T25, T28 |
+| RF-55 | T20, T25, T28 |
+| RF-56 | T25, T28 |
+| RF-57 | T25, T28 |
+| RF-58 | T25, T28 |
+| RF-59 | T25, T28 |
+| RF-60 | T26, T28 |
+| RF-61 | T26, T28 |
+| RF-62 | T27, T28 |
+| RF-63 | T27, T28 |
+| RF-64 | T27, T28 |
+| RF-65 | T21, T28 |
+| RF-66 | T21, T28 |
+| RF-67 | T21, T28 |
+| RF-68 | T21, T28 |
+| RF-69 | T20, T21, T28 |
+| RF-70 | T22, T28 |
+| RF-71 | T22, T28 |
+| RF-72 | T22, T28 |
+| RF-73 | T23, T28 |
+| RF-74 | T20, T23, T28 |
+| RF-75 | T23, T28 |
+| RF-76 | T23, T28 |
+| RF-77 | T24, T28 |
+| RF-78 | T20, T24, T28 |
+| RF-79 | T20, T24, T28 |
+| RF-80 | T24, T28 |
 
-**Cobertura:** RF-1 … RF-53 (todos).
+**Cobertura:** RF-1 … RF-80 (todos).
