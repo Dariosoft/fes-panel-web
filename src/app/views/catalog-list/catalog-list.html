@@ -164,7 +164,10 @@
                 </p>
               </div>
 
-              <app-product-status [stage]="product.stage" />
+              <app-status-pill
+                [label]="isPublished(product) ? 'Etapa: Publicado' : 'Etapa: Borrador'"
+                [tone]="isPublished(product) ? 'accent' : 'muted'"
+              />
 
               <div class="flex flex-wrap gap-2">
                 @if (isDraft(product)) {
@@ -215,7 +218,7 @@
             </div>
 
             @if (product.images.length > 0) {
-              <app-product-gallery [images]="product.images" />
+              <app-gallery [images]="product.images" [alt]="product.name" />
             }
           </li>
         }

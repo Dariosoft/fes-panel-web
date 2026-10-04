@@ -25,7 +25,7 @@ Implementar en `panel-web` (Angular 21, SPA standalone, TypeScript estricto) la 
 - `app.routes.ts`: `''` → `HomeView`; `catalog`, `catalog/new` y `catalog/:id/edit` con `loadComponent()` y `title` en español; `'**'` → redirect.
 - `app.config.ts`: `provideRouter`, `provideHttpClient()` y `provideAppInitializer` que llama `Session.hydrate()` y **espera** `Session.whenHydrated`.
 - Sesión: `Session` (signals `status`, `profile`, `notice`, `authenticated`; acciones `hydrate`, `enterWithGoogle` con `return_to`, `logout` con recarga) y `PanelSession` (`/panel/identity/*`).
-- Catálogo: servicios `Catalog`, `PanelCatalog`, `LocalCatalog`, `CatalogRecovery`; componentes `ConfirmDialog`, `ProductImages`, `ProductGallery`, `ProductStatus`; vistas `CatalogListView` y `CatalogFormView`.
+- Catálogo: servicios `Catalog`, `PanelCatalog`, `LocalCatalog`, `CatalogRecovery` e `ImageCarousel`; componentes genéricos `ConfirmDialog`, `ImageSelector`, `Gallery` y `StatusPill`; vistas `CatalogListView` y `CatalogFormView`.
 - Environments `src/environments/*` con `apiBaseUrl` sin barra final.
 - Estilos globales Tailwind v4 + Fira Sans / Fira Code, tema Admin UI oscuro, `html,body{height:100%}` y `body{overflow:hidden}`.
 - Convenciones: código en inglés, textos en español; presentación ≠ HTTP ≠ estado; hosts de API fuera de componentes; sin credenciales en bundle; CSS legible (una declaración por línea, media queries en líneas propias).
@@ -60,9 +60,9 @@ src/
     core/
       components/
         confirm-dialog/                           # modal reutilizable (foco atrapado, Escape, cancelable)
-        product-gallery/                          # galería de solo lectura de la tarjeta
-        product-images/                           # alta/validación de imágenes + carousel del formulario
-        product-status/                           # badge de etapa (draft | published)
+        gallery/                                  # Gallery (app-gallery): galería genérica de solo lectura
+        image-selector/                           # ImageSelector (app-image-selector): selección/validación genérica
+        status-pill/                              # StatusPill (app-status-pill): badge genérico label + tone
         session-bar/                              # control de sesión (entrar/salir) + perfil
       constants/
         product-stage.ts                          # draft | published
@@ -71,7 +71,8 @@ src/
         catalog-storage-keys.ts                   # claves de sessionStorage
         session-status.ts                         # anonymous | authenticated
       models/
-        catalog-product.ts                        # CatalogProduct, ProductImage, Currency, EditableProduct
+        catalog-product.ts                        # CatalogProduct, Currency, EditableProduct; imágenes como ImageItem[]
+        image-item.ts                             # ImageItem { id, name?, url?, dataUrl?, file? }
         pending-catalog-operation.ts              # intención pendiente tras 401
       services/
         navigation/
@@ -84,6 +85,8 @@ src/
           panel-catalog.ts                        # HTTP {apiBaseUrl}/panel/catalog/* (?name=, FormData)
           local-catalog.ts                        # persistencia sessionStorage
           catalog-recovery.ts                     # guarda y reintenta la operación tras 401
+        media/
+          image-carousel.ts                       # estado reusable de carousel, provisto por componente
     views/
       catalog-list/                               # /catalog
       catalog-form/                               # /catalog/new y /catalog/:id/edit (vista compartida)
@@ -119,7 +122,7 @@ Producto del servidor (respuesta de `/panel/catalog/products`):
 }
 ```
 
-Producto local (solo en el navegador): mismo shape visible con `origin: "local"`, `owned: false`, `stage: "draft"` e `images: [{ id, name, dataUrl }]`. El modelo unificado `CatalogProduct` agrega `origin` (`local` | `server`) y `owned` (booleano) para que la UI decida la separación, el borde rojo y las acciones sin conocer detalles de transporte.
+Producto local (solo en el navegador): mismo shape visible con `origin: "local"`, `owned: false`, `stage: "draft"` e `images: [{ id, name, dataUrl, file? }]`. `ImageItem` define `{ id, name?, url?, dataUrl?, file? }`, y tanto `CatalogProduct` como `EditableProduct` usan `ImageItem[]`. El modelo unificado `CatalogProduct` agrega `origin` (`local` | `server`) y `owned` (booleano) para que la UI decida la separación, el borde rojo y las acciones sin conocer detalles de transporte.
 
 Operación pendiente tras 401 (persistida en `sessionStorage`): `{ kind: 'save' | 'publish' | 'unpublish' | 'delete' | 'publishCatalog', productId?, productOrigin?, payload? }`.
 
@@ -173,14 +176,15 @@ Todas con `withCredentials: true`. El cuerpo de crear/actualizar es `FormData` (
 
 **Cubre:** RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18, RF-75, RF-76
 
-- `ProductImages` (formulario) gestiona el alta con `input type="file" multiple`: con sesión hasta `MAX_IMAGES` (10) de `MAX_IMAGE_BYTES` (2 MB); sin sesión hasta `MAX_IMAGES_WITHOUT_SESSION` (1) con aviso de que más requiere sesión (RF-12, RF-13, RF-14). Rechaza el excedente y los archivos grandes con mensaje (RF-17, RF-18). Muestra carousel con `role="group"`, navegación por teclado y placeholder cuando no hay imágenes (RF-15 del formulario, RF-16); permite quitar la imagen actual.
-- `ProductGallery` (tarjeta del listado) es una galería de solo lectura: muestra `url` o `dataUrl` con controles ‹/› y etiqueta `n / total` cuando hay más de una imagen (RF-75). El listado solo la renderiza si `product.images.length > 0` (RF-76).
+- `ImageSelector` (`app-image-selector`) gestiona de forma genérica el alta con `input type="file" multiple`, `FileReader`, validación de cantidad/tamaño, eliminación y navegación por teclado. Recibe `images`, `maxImages`, `maxImageBytes`, `label`, `helperText`, `limitExceededMessage`, `accept` e `inputId`, y emite `imagesChange`; no importa autenticación ni dominio de producto. `CatalogFormView` conserva las reglas de sesión/producto y le pasa hasta `MAX_IMAGES` (10) de `MAX_IMAGE_BYTES` (2 MB) con sesión o `MAX_IMAGES_WITHOUT_SESSION` (1) y los textos correspondientes (RF-12–RF-18). El máximo es 1 si no hay sesión **o** si el producto editado todavía es local sin dueño (aunque haya sesión), con un mensaje que invita a publicarlo para adjuntar más (RF-13, RF-81).
+- `Gallery` (`app-gallery`) recibe `images` y `alt` genéricos y es de solo lectura: muestra `url` o `dataUrl` con controles ‹/› y etiqueta `n / total` cuando hay más de una imagen (RF-75). `CatalogListView` le pasa las imágenes y el nombre como texto alternativo, y solo la renderiza si `product.images.length > 0` (RF-76).
+- Ambos componentes declaran `providers: [ImageCarousel]`; el servicio reusable conserva `items`/`activeIndex` y expone `current`, `source`, `total`, `hasMany`, `indexLabel`, `setImages`, `next` y `previous`. No está registrado con `providedIn: 'root'`, por lo que cada instancia de componente mantiene un carrusel aislado.
 
 ### §5. Etapa y posesión
 
 **Cubre:** RF-23, RF-24, RF-25, RF-73
 
-- `ProductStatus` muestra un único badge de etapa («Borrador»/«Publicado») con símbolo y color, sin pill de posesión (RF-23, RF-73).
+- `StatusPill` (`app-status-pill`) muestra un badge genérico a partir de `label` y `tone` (`accent` | `muted` | `destructive`), sin importar `PRODUCT_STAGE` ni conocer el catálogo. `CatalogListView` traduce la etapa a label/tone y no muestra pill de posesión (RF-23, RF-73).
 - La posesión se representa como borde/inset-ring rojo en la tarjeta del producto sin dueño (RF-24).
 - La UI nunca ofrece pasar un producto sin dueño a `published` sin tomar posesión; ese estado no es alcanzable en el flujo normal (RF-25).
 
@@ -242,9 +246,10 @@ Todas con `withCredentials: true`. El cuerpo de crear/actualizar es `FormData` (
 
 **Cubre:** RF-15, RF-16, RF-23, RF-54–RF-56, RF-73–RF-76
 
-- `ProductStatus`: un `input` `stage` y un badge de etapa.
-- `ProductGallery`: `input` `images`, índice activo, controles ‹/› y etiqueta `n / total`; solo lectura.
-- `ProductImages`: alta/validación de archivos, carousel del formulario, placeholder y emisión `imagesChange`.
+- `StatusPill` (`app-status-pill`): inputs genéricos `label` y `tone`; la vista decide cómo representar la etapa.
+- `Gallery` (`app-gallery`): inputs genéricos `images` y `alt`; delega el índice y la navegación a su `ImageCarousel` de instancia; solo lectura.
+- `ImageSelector` (`app-image-selector`): inputs genéricos de imágenes, límites y textos; alta/validación con `FileReader`, eliminación, teclado, placeholder y emisión `imagesChange`; delega el carousel a su `ImageCarousel` de instancia.
+- `ImageCarousel`: servicio reusable sin `providedIn: 'root'`; `Gallery` e `ImageSelector` lo declaran en `providers` para evitar compartir estado entre instancias.
 - `ConfirmDialog`: modal reutilizable.
 - `@angular/forms` habilita `ReactiveFormsModule`; `lucide-angular` provee los iconos usados (`House`, `Boxes`, `LogIn`, `LogOut`, `Menu`, `X`, `PanelLeftClose`, `PanelLeftOpen`, `Funnel`, `FunnelX`, `Eye`, `EyeOff`, `Pencil`, `Trash2`, `Plus`, `EllipsisVertical`).
 
@@ -394,7 +399,7 @@ Unitarios prioritarios: `Catalog` (grupos, orden, filtro backend/local, guardar 
 1. Rutas, navegación del aside, shell colapsable/móvil, layout de alto fijo y modelos/constantes del catálogo — RF-1–RF-4, RF-23–RF-25, RF-54–RF-61, RF-77–RF-80.
 2. `LocalCatalog` (`sessionStorage`) y `PanelCatalog` (`/panel/catalog/*`, credenciales, `?name=`, FormData, 401) — RF-20, RF-43–RF-52, RF-66.
 3. `Catalog` (grupos, orden, filtro backend/local, alta/edición local vs servidor) — RF-5–RF-9, RF-19, RF-21, RF-22, RF-65–RF-69.
-4. Vistas de listado y formulario + `ProductImages`, `ProductGallery`, `ProductStatus` y `ConfirmDialog` — RF-10–RF-18, RF-70–RF-76.
+4. Vistas de listado y formulario + `ImageSelector`, `Gallery`, `StatusPill` y `ConfirmDialog` — RF-10–RF-18, RF-70–RF-76.
 5. Acciones publicar/despublicar/eliminar/publicar catálogo — RF-26–RF-42, RF-44–RF-50.
 6. `CatalogRecovery`, `Session.whenHydrated`, login `return_to` y logout con recarga — RF-53, RF-62–RF-64.
 7. Barrido de frontera (sin `fes-catalog-api`/MinIO/secretos), `npm test` y demo manual móvil/escritorio — RF-1–RF-80.

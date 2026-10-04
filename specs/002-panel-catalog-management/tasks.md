@@ -4,7 +4,7 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 
 ## Modelos, constantes y rutas
 
-- [x] **T1.** Crear `core/models/catalog-product.ts` (`CatalogProduct`, `ProductImage`, `Currency`, `EditableProduct`) y `core/models/pending-catalog-operation.ts`; crear las constantes `core/constants/product-stage.ts` (`draft` | `published`), `product-origin.ts` (`local` | `server`), `product-limits.ts` (`MAX_IMAGES = 10`, `MAX_IMAGE_BYTES = 2 * 1024 * 1024`) y `catalog-storage-keys.ts` (claves de `sessionStorage`).
+- [x] **T1.** Crear `core/models/catalog-product.ts` (`CatalogProduct`, `Currency`, `EditableProduct`), `core/models/image-item.ts` (`ImageItem { id, name?, url?, dataUrl?, file? }`) y `core/models/pending-catalog-operation.ts`; usar `ImageItem[]` en los contratos de producto; crear las constantes `core/constants/product-stage.ts` (`draft` | `published`), `product-origin.ts` (`local` | `server`), `product-limits.ts` (`MAX_IMAGES = 10`, `MAX_IMAGE_BYTES = 2 * 1024 * 1024`) y `catalog-storage-keys.ts` (claves de `sessionStorage`).
   **RFs:** RF-11, RF-12, RF-23, RF-24, RF-25
   **Done when:** los tipos compilan en estricto, modelan producto local vs servidor con etapa y posesión, y no contienen hosts ni URLs.
 
@@ -38,7 +38,7 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 
 ## Componentes de presentación
 
-- [x] **T8.** Crear `core/components/product-status/product-status.ts` presentacional con badges de etapa (`draft`/`published`) y de posesión («Sin dueño»/«De tu cuenta»).
+- [x] **T8.** Crear `core/components/status-pill/status-pill.ts` (`StatusPill`, selector `app-status-pill`) como badge presentacional genérico con inputs `label` y `tone` (`accent` | `muted` | `destructive`); la vista traduce la etapa sin acoplar el componente a constantes del catálogo, y representa la posesión en la tarjeta.
   **RFs:** RF-23, RF-24
   **Done when:** los badges reflejan los `input()` y son legibles con contraste adecuado y sin depender solo del color.
 
@@ -46,13 +46,13 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-39, RF-40, RF-41, RF-42
   **Done when:** abrir y cancelar no ejecuta ninguna acción, el foco queda atrapado mientras está abierto y vuelve al botón de origen al cerrar.
 
-- [x] **T10.** Crear `core/components/product-images/product-images.ts`: alta de archivos con `input type="file"` multiple; con sesión hasta 10 de 2 MB, sin sesión hasta 1 con aviso de que más requiere iniciar sesión; rechazar excedente y archivos grandes con mensaje; carousel accesible con teclado cuando hay imágenes y placeholder cuando no.
+- [x] **T10.** Crear `core/components/image-selector/image-selector.ts` (`ImageSelector`, selector `app-image-selector`): alta genérica de archivos con `input type="file"` multiple y `FileReader`; inputs de imágenes, límites, textos, `accept` e `inputId`; output `imagesChange`; rechazo de excedentes/archivos grandes, eliminación, carousel accesible con teclado y placeholder. Las reglas de sesión quedan en la vista consumidora.
   **RFs:** RF-12, RF-13, RF-14, RF-15, RF-16, RF-17, RF-18
   **Done when:** con sesión se aceptan 10×2 MB, sin sesión la segunda imagen se rechaza con aviso, un archivo grande se rechaza, y el carousel/placeholder aparecen según haya o no imágenes.
 
 ## Vistas
 
-- [x] **T11.** Crear `views/catalog-form/catalog-form.ts` (standalone, reactive forms) para `/catalog/new` y `/catalog/:id/edit`: campos `name`, `price`, `currency` (`ARS` por defecto, `USD`) y `stock` opcional; cargar el producto por `id`; guardar según sesión; integrar `product-images`; mensajes de error junto al campo y estado de guardado.
+- [x] **T11.** Crear `views/catalog-form/catalog-form.ts` (standalone, reactive forms) para `/catalog/new` y `/catalog/:id/edit`: campos `name`, `price`, `currency` (`ARS` por defecto, `USD`) y `stock` opcional; cargar el producto por `id`; guardar según sesión; integrar `app-image-selector` pasando límites y textos de login; mensajes de error junto al campo y estado de guardado.
   **RFs:** RF-3, RF-4, RF-10, RF-11, RF-19, RF-21
   **Done when:** alta y edición comparten vista, `currency` arranca en `ARS`, `stock` puede quedar vacío y el error de campo se muestra junto al control.
 
@@ -106,7 +106,7 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-24, RF-70, RF-71, RF-72
   **Done when:** no se ve ningún encabezado de grupo; las tarjetas sin dueño tienen borde rojo; el aviso aparece solo si hay locales.
 
-- [x] **T23.** Ajustar la tarjeta: `ProductStatus` solo con etapa (sin pill de posesión); acciones solo-icono con `aria-label`/`title` (Publicar `Eye`, Despublicar `EyeOff`, Editar `Pencil`, Eliminar `Trash2`); galería de solo lectura `ProductGallery` a la derecha solo si hay imágenes.
+- [x] **T23.** Ajustar la tarjeta: `StatusPill` recibe label/tone de etapa (sin pill de posesión); acciones solo-icono con `aria-label`/`title` (Publicar `Eye`, Despublicar `EyeOff`, Editar `Pencil`, Eliminar `Trash2`); `Gallery` recibe images/alt y aparece a la derecha solo si hay imágenes.
   **RFs:** RF-15, RF-73, RF-74, RF-75, RF-76
   **Done when:** la tarjeta no muestra posesión; cada acción tiene icono + etiqueta accesible; la galería aparece solo con imágenes y no permite editar.
 
@@ -130,6 +130,14 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-9, RF-54–RF-80
   **Done when:** los tests nuevos pasan con el runner del proyecto y `npm test` queda en verde.
 
+- [x] **T29.** Abstraer y renombrar los componentes de imágenes/estado a `Gallery` (`app-gallery`), `ImageSelector` (`app-image-selector`) y `StatusPill` (`app-status-pill`); extraer `ImageItem` como modelo compartido y `ImageCarousel` como servicio reusable sin registro raíz, provisto por `Gallery` e `ImageSelector` para aislar el estado por instancia. Mantener en `CatalogFormView` las reglas de sesión, límites y textos, y en `CatalogListView` la traducción de etapa y los datos de producto.
+  **RFs:** RF-12–RF-18, RF-23, RF-73, RF-75, RF-76
+  **Done when:** los componentes genéricos no importan sesión, producto ni constantes de etapa; ambas experiencias usan `ImageItem[]`; cada galería/selector declara `providers: [ImageCarousel]`; sus tests cubren selección, validación, eliminación, teclado, solo lectura y aislamiento de navegación entre instancias.
+
+- [x] **T30.** Limitar a 1 imagen la edición de un producto local sin dueño aunque haya sesión.
+  **RFs:** RF-81
+  **Done when:** `CatalogFormView` infiere `localProduct` al cargar el producto (`origin === 'local' || !owned`) y ajusta `maxImages`, `imageHelperText` e `imageLimitExceededMessage`; los tests cubren producto local con sesión (1 imagen) y producto persistido con dueño (10).
+
 ## Matriz RF → tareas
 
 | RF | Tareas |
@@ -145,18 +153,18 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-9 | T6, T12, T18, T19 |
 | RF-10 | T11, T19 |
 | RF-11 | T1, T11, T19 |
-| RF-12 | T1, T10, T19 |
-| RF-13 | T10, T19 |
-| RF-14 | T10, T19 |
-| RF-15 | T10, T19 |
-| RF-16 | T10, T19 |
-| RF-17 | T10, T19 |
-| RF-18 | T10, T19 |
+| RF-12 | T1, T10, T19, T29 |
+| RF-13 | T10, T19, T29 |
+| RF-14 | T10, T19, T29 |
+| RF-15 | T10, T19, T29 |
+| RF-16 | T10, T19, T29 |
+| RF-17 | T10, T19, T29 |
+| RF-18 | T10, T19, T29 |
 | RF-19 | T7, T11, T18, T19 |
 | RF-20 | T3, T7, T18, T19 |
 | RF-21 | T7, T11, T18, T19 |
 | RF-22 | T6, T19 |
-| RF-23 | T1, T8, T19 |
+| RF-23 | T1, T8, T19, T29 |
 | RF-24 | T1, T8, T19 |
 | RF-25 | T1, T8, T19 |
 | RF-26 | T13, T19 |
@@ -206,13 +214,14 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-70 | T22, T28 |
 | RF-71 | T22, T28 |
 | RF-72 | T22, T28 |
-| RF-73 | T23, T28 |
+| RF-73 | T23, T28, T29 |
 | RF-74 | T20, T23, T28 |
-| RF-75 | T23, T28 |
-| RF-76 | T23, T28 |
+| RF-75 | T23, T28, T29 |
+| RF-76 | T23, T28, T29 |
 | RF-77 | T24, T28 |
 | RF-78 | T20, T24, T28 |
 | RF-79 | T20, T24, T28 |
 | RF-80 | T24, T28 |
+| RF-81 | T30 |
 
 **Cobertura:** RF-1 … RF-80 (todos).

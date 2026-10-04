@@ -29,7 +29,7 @@ describe('CatalogFormView', () => {
     ...overrides,
   });
 
-  const configure = async (id: string | null): Promise<void> => {
+  const configure = async (id: string | null, authenticated = false): Promise<void> => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -37,7 +37,7 @@ describe('CatalogFormView', () => {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } },
         },
-        { provide: Session, useValue: { authenticated: () => false } },
+        { provide: Session, useValue: { authenticated: () => authenticated } },
         { provide: Catalog, useValue: catalog },
       ],
     });
@@ -104,6 +104,25 @@ describe('CatalogFormView', () => {
     expect(fixture.componentInstance.form.value.name).toBe('Mate imperial');
     expect(fixture.componentInstance.form.value.price).toBe(1800);
     expect(fixture.componentInstance.form.value.stock).toBe(4);
+  });
+
+  it('keeps a local product limited to one image after login', async () => {
+    catalog.getProduct = vi.fn(() =>
+      of(buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false })),
+    );
+    await configure('local-1', true);
+
+    expect(fixture.componentInstance.maxImages()).toBe(1);
+    expect(fixture.componentInstance.imageHelperText()).toContain('todavía es local');
+  });
+
+  it('allows ten images for a persisted product with an owner', async () => {
+    catalog.getProduct = vi.fn(() =>
+      of(buildProduct({ id: 'server-1', origin: PRODUCT_ORIGIN.server, owned: true })),
+    );
+    await configure('server-1', true);
+
+    expect(fixture.componentInstance.maxImages()).toBe(10);
   });
 
   it('shows an error when the product to edit does not exist', async () => {

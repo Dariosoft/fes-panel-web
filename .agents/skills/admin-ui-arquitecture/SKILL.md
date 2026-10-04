@@ -33,6 +33,11 @@ Use this skill when adding, moving, or reviewing `panel-web` screens, routes, la
 - Keep cross-application Angular building blocks under `core/` by category: `components/`, `services/`, `models/`, `constants/`, `guards/`, `interceptors/`, `directives/`, `pipes/`, `tokens/`, and similar shared concepts.
 - Put shared injectables under `core/services/<capability>/`; keep names responsibility-based and add a `Service` suffix only when it removes ambiguity.
 - Put reusable presentational components under `core/components/<component-name>/`; keep routed view-only components under `views/`.
+- Components under `core/components/` must be domain-neutral: generic names, inputs,
+  models, and text. A component tied to one route/domain belongs under
+  `views/<view-name>/components/` unless it is abstracted first.
+- Provide reusable UI state services at component scope when state must not leak
+  between component instances (for example, an image carousel index).
 - Put shared models and DTO-like types under `core/models/`; do not hide them inside service folders.
 - Put stable application constants under `core/constants/` or a feature-local constants file when the value is not globally shared.
 - Put route guards under `core/guards/` when shared across views; keep view-specific guards near that view until reuse appears.

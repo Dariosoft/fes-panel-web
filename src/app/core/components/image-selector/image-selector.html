@@ -1,21 +1,18 @@
 <div class="flex flex-col gap-3">
   <div class="flex flex-col gap-2">
-    <label for="product-images-input" class="text-sm font-medium text-foreground">Imágenes</label>
+    <label [for]="inputId()" class="text-sm font-medium text-foreground">{{ label() }}</label>
     <input
-      id="product-images-input"
+      [id]="inputId()"
       type="file"
-      accept="image/*"
+      [accept]="accept()"
       multiple
+      [attr.aria-describedby]="helperText() ? inputId() + '-helper' : null"
       class="block w-full text-sm text-muted-foreground file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
       (change)="onFilesSelected($event)"
     />
 
-    @if (authenticated()) {
-      <p class="text-xs text-muted-foreground">Hasta 10 imágenes de 2 MB cada una.</p>
-    } @else {
-      <p class="text-xs text-muted-foreground">
-        Sin sesión podés adjuntar 1 imagen. Iniciá sesión para adjuntar hasta 10.
-      </p>
+    @if (helperText()) {
+      <p [id]="inputId() + '-helper'" class="text-xs text-muted-foreground">{{ helperText() }}</p>
     }
 
     @if (errorMessage()) {
@@ -23,18 +20,18 @@
     }
   </div>
 
-  @if (currentImage(); as image) {
+  @if (current(); as image) {
     <div
       class="flex flex-col gap-2 rounded-md border border-border bg-card p-3"
       tabindex="0"
       role="group"
       aria-roledescription="carrusel"
-      aria-label="Imágenes del producto"
+      [attr.aria-label]="label()"
       (keydown)="onCarouselKeydown($event)"
     >
       <img
-        [src]="image.dataUrl ?? image.url"
-        [alt]="image.name ?? 'Imagen del producto'"
+        [src]="source()"
+        [alt]="image.name ?? 'Imagen seleccionada'"
         class="h-48 w-full rounded-md object-contain"
       />
 

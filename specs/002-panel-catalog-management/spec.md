@@ -38,12 +38,13 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 
 ### Imágenes
 - RF-12: DONDE haya sesión, EL SISTEMA guardará las imágenes en el servidor en cada guardado, admitiendo hasta 10 imágenes de hasta 2 MB cada una.
-- RF-13: MIENTRAS no haya sesión, EL SISTEMA permitirá adjuntar hasta 1 imagen por producto.
+- RF-13: MIENTRAS no haya sesión o el producto editado todavía sea local sin dueño, EL SISTEMA permitirá adjuntar hasta 1 imagen por producto.
 - RF-14: MIENTRAS no haya sesión, EL SISTEMA avisará de que para adjuntar más de 1 imagen se requiere iniciar sesión.
 - RF-15: CUANDO el producto tiene imágenes, EL SISTEMA las mostrará en una galería de solo lectura (carousel).
 - RF-16: MIENTRAS el formulario del producto no tenga imágenes, EL SISTEMA mostrará un placeholder.
 - RF-17: SI el usuario intenta adjuntar más de 10 imágenes, ENTONCES EL SISTEMA rechazará el excedente e informará del límite.
 - RF-18: SI una imagen supera 2 MB, ENTONCES EL SISTEMA la rechazará e informará del límite.
+- RF-81: MIENTRAS el producto editado todavía sea local sin dueño y haya sesión, EL SISTEMA limitará a 1 imagen y avisará de que debe publicarse para adjuntar más.
 
 ### Alta y edición con y sin sesión
 - RF-19: MIENTRAS no haya sesión, EL SISTEMA permitirá dar de alta y editar productos sin exigir inicio de sesión.
@@ -150,6 +151,7 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 - Eliminar un producto con dueño: se borra en el servidor (RF-33); local sin dueño: solo en la sesión (RF-34).
 - 401 en cualquier operación con sesión: se inicia login y se reintenta la operación (RF-53).
 - Sin sesión: 1 imagen por producto y aviso de que más requiere sesión (RF-13, RF-14); con sesión: hasta 10 de 2 MB (RF-12).
+- Producto local sin dueño editado con sesión: se mantiene el límite de 1 imagen con aviso de publicarlo (RF-81).
 - Exceso de imágenes o imagen demasiado grande: se rechaza y se avisa (RF-17, RF-18).
 - Sin imágenes: no hay galería en la tarjeta (RF-76) y el formulario muestra placeholder (RF-16).
 - Producto `published` sin dueño: no alcanzable en el flujo normal (RF-25).

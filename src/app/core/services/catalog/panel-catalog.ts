@@ -3,24 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { PRODUCT_ORIGIN } from '../../constants/product-origin';
-import { CatalogProduct, EditableProduct } from '../../models/catalog-product';
-
-interface ServerProductImage {
-  id: string;
-  url: string;
-}
-
-interface ServerProduct {
-  id: string;
-  ownerAccountId: string | null;
-  name: string;
-  price: number;
-  currency: CatalogProduct['currency'];
-  stock: number | null;
-  stage: CatalogProduct['stage'];
-  images: ServerProductImage[];
-  createdAt: string;
-}
+import { CatalogProduct, EditableProduct, ServerProduct } from '../../models/catalog-product';
 
 @Injectable({ providedIn: 'root' })
 export class PanelCatalog {

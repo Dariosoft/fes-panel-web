@@ -13,20 +13,14 @@ import {
   Trash2,
 } from 'lucide-angular';
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
-import { ProductGallery } from '../../core/components/product-gallery/product-gallery';
-import { ProductStatus } from '../../core/components/product-status/product-status';
+import { Gallery } from '../../core/components/gallery/gallery';
+import { StatusPill } from '../../core/components/status-pill/status-pill';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PRODUCT_STAGE } from '../../core/constants/product-stage';
 import { CatalogProduct } from '../../core/models/catalog-product';
 import { Catalog } from '../../core/services/catalog/catalog';
 import { Session } from '../../core/services/session/session';
-
-type CatalogActionKind = 'publish' | 'unpublish' | 'delete' | 'publishCatalog';
-
-interface CatalogAction {
-  kind: CatalogActionKind;
-  product?: CatalogProduct;
-}
+import { CatalogAction, CatalogActionKind } from 'src/app/core/models/catalog-action';
 
 const ACTION_TITLES: Record<CatalogActionKind, string> = {
   publish: 'Publicar producto',
@@ -45,7 +39,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 @Component({
   selector: 'app-catalog-list-view',
   standalone: true,
-  imports: [NgClass, RouterLink, LucideAngularModule, ProductStatus, ProductGallery, ConfirmDialog],
+  imports: [NgClass, RouterLink, LucideAngularModule, StatusPill, Gallery, ConfirmDialog],
   templateUrl: './catalog-list.html',
   host: { class: 'flex min-h-0 flex-1 flex-col gap-4' },
 })

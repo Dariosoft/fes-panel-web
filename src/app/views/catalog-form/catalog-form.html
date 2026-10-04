@@ -75,9 +75,13 @@
       }
     </div>
 
-    <app-product-images
+    <app-image-selector
       [images]="images()"
-      [authenticated]="authenticated()"
+      [maxImages]="maxImages()"
+      [maxImageBytes]="maxImageBytes"
+      label="Imágenes"
+      [helperText]="imageHelperText()"
+      [limitExceededMessage]="imageLimitExceededMessage()"
       (imagesChange)="images.set($event)"
     />
 

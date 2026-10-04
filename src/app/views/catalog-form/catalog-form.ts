@@ -1,15 +1,22 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ProductImages } from '../../core/components/product-images/product-images';
-import { Currency, EditableProduct, ProductImage } from '../../core/models/catalog-product';
+import { ImageSelector } from '../../core/components/image-selector/image-selector';
+import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
+import {
+  MAX_IMAGES,
+  MAX_IMAGES_WITHOUT_SESSION,
+  MAX_IMAGE_BYTES,
+} from '../../core/constants/product-limits';
+import { Currency, EditableProduct } from '../../core/models/catalog-product';
+import { ImageItem } from '../../core/models/image-item';
 import { Catalog } from '../../core/services/catalog/catalog';
 import { Session } from '../../core/services/session/session';
 
 @Component({
   selector: 'app-catalog-form-view',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ProductImages],
+  imports: [ReactiveFormsModule, RouterLink, ImageSelector],
   templateUrl: './catalog-form.html',
   host: { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4 md:pb-6' },
 })
@@ -24,7 +31,28 @@ export class CatalogFormView implements OnInit {
   readonly saving = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
-  readonly images = signal<ProductImage[]>([]);
+  readonly images = signal<ImageItem[]>([]);
+  readonly localProduct = signal(false);
+  readonly maxImages = computed(() =>
+    this.authenticated() && !this.localProduct() ? MAX_IMAGES : MAX_IMAGES_WITHOUT_SESSION,
+  );
+  readonly maxImageBytes = MAX_IMAGE_BYTES;
+  readonly imageHelperText = computed(() => {
+    if (this.localProduct()) {
+      return 'Este producto todavía es local. Publicalo para adjuntar hasta 10 imágenes.';
+    }
+    return this.authenticated()
+      ? 'Hasta 10 imágenes de 2 MB cada una.'
+      : 'Sin sesión podés adjuntar 1 imagen. Iniciá sesión para adjuntar hasta 10.';
+  });
+  readonly imageLimitExceededMessage = computed(() => {
+    if (this.localProduct()) {
+      return 'Este producto todavía es local. Podés adjuntar solo 1 imagen hasta publicarlo.';
+    }
+    return this.authenticated()
+      ? undefined
+      : 'Sin sesión podés adjuntar solo 1 imagen. Iniciá sesión para adjuntar hasta 10.';
+  });
 
   readonly form = this.formBuilder.group({
     name: ['', Validators.required],
@@ -53,6 +81,7 @@ export class CatalogFormView implements OnInit {
           return;
         }
         this.productId = product.id;
+        this.localProduct.set(product.origin === PRODUCT_ORIGIN.local || !product.owned);
         this.images.set(product.images);
         this.form.patchValue({
           name: product.name,

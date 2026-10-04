@@ -1,15 +1,8 @@
 import { ProductOrigin } from '../constants/product-origin';
 import { ProductStage } from '../constants/product-stage';
+import { ImageItem } from './image-item';
 
 export type Currency = 'ARS' | 'USD';
-
-export interface ProductImage {
-  id: string;
-  name?: string;
-  url?: string;
-  dataUrl?: string;
-  file?: File;
-}
 
 export interface CatalogProduct {
   id: string;
@@ -20,7 +13,7 @@ export interface CatalogProduct {
   stage: ProductStage;
   owned: boolean;
   origin: ProductOrigin;
-  images: ProductImage[];
+  images: ImageItem[];
   createdAt: string;
 }
 
@@ -30,5 +23,22 @@ export interface EditableProduct {
   price: number;
   currency: Currency;
   stock?: number;
-  images: ProductImage[];
+  images: ImageItem[];
+}
+
+export interface ServerImageItem {
+  id: string;
+  url: string;
+}
+
+export interface ServerProduct {
+  id: string;
+  ownerAccountId: string | null;
+  name: string;
+  price: number;
+  currency: CatalogProduct['currency'];
+  stock: number | null;
+  stage: CatalogProduct['stage'];
+  images: ServerImageItem[];
+  createdAt: string;
 }

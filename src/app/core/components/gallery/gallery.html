@@ -2,7 +2,7 @@
   class="relative h-28 w-28 shrink-0 overflow-hidden rounded-md border border-white/20 bg-background sm:h-36 sm:w-36"
 >
   @if (source()) {
-    <img [src]="source()" alt="" class="h-full w-full object-cover" />
+    <img [src]="source()" [alt]="alt()" class="h-full w-full object-cover" />
   }
 
   @if (hasMany()) {

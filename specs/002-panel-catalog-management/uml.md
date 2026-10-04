@@ -10,7 +10,7 @@ Los diagramas priorizan relaciones arquitectónicas y de flujo; no intentan list
 
 **Claves de `sessionStorage`:** `fes.catalog.products.local` (productos locales sin dueño), `fes.catalog.pending-operation` (intención para reintentar tras 401).
 
-**Producto unificado (`CatalogProduct`):** `{ id, name, price, currency, stock?, stage: 'draft'|'published', owned: boolean, origin: 'local'|'server', images: ProductImage[], createdAt }`.
+**Producto unificado (`CatalogProduct`):** `{ id, name, price, currency, stock?, stage: 'draft'|'published', owned: boolean, origin: 'local'|'server', images: ImageItem[], createdAt }`. `EditableProduct` también usa `ImageItem[]`, donde `ImageItem = { id, name?, url?, dataUrl?, file? }`.
 
 ## Capas de componentes
 
@@ -29,15 +29,19 @@ flowchart TB
     list["CatalogListView<br/>views/catalog-list/<br/>header + filtro + tarjetas"]
     form["CatalogFormView<br/>views/catalog-form/"]
     dialog["ConfirmDialog<br/>core/components/confirm-dialog/"]
-    images["ProductImages<br/>core/components/product-images/"]
-    gallery["ProductGallery<br/>core/components/product-gallery/"]
-    status["ProductStatus<br/>core/components/product-status/ etapa"]
+    selector["ImageSelector · app-image-selector<br/>core/components/image-selector/<br/>inputs genéricos + imagesChange"]
+    gallery["Gallery · app-gallery<br/>core/components/gallery/<br/>images + alt · solo lectura"]
+    status["StatusPill · app-status-pill<br/>core/components/status-pill/<br/>label + tone"]
   end
 
   subgraph state["Estado"]
     catalog["Catalog<br/>core/services/catalog/catalog.ts<br/>signals · grupos · orden · filtro backend/local · acciones"]
     recovery["CatalogRecovery<br/>core/services/catalog/catalog-recovery.ts<br/>remember · resumeIfPending"]
     session["Session<br/>core/services/session/session.ts<br/>whenHydrated · authenticated · return_to · logout+reload"]
+  end
+
+  subgraph media["Media reusable"]
+    carousel["ImageCarousel<br/>core/services/media/image-carousel.ts<br/>items · activeIndex · derivados · navegación<br/>sin providedIn root"]
   end
 
   subgraph http["HTTP"]
@@ -54,6 +58,7 @@ flowchart TB
 
   subgraph types["Tipos y constantes"]
     model["core/models/catalog-product.ts"]
+    imageItem["core/models/image-item.ts<br/>ImageItem"]
     pending["core/models/pending-catalog-operation.ts"]
     constants["core/constants/<br/>product-stage · product-origin · product-limits · catalog-storage-keys"]
   end
@@ -74,12 +79,19 @@ flowchart TB
   list --> gallery
   list --> status
   form --> catalog
-  form --> images
+  form --> selector
+  form --> imageItem
+  selector --> carousel
+  selector --> imageItem
+  gallery --> carousel
+  gallery --> imageItem
+  carousel --> imageItem
   catalog --> panel
   catalog --> local
   catalog --> recovery
   catalog --> session
   catalog --> model
+  model --> imageItem
   catalog --> constants
   local --> constants
   recovery --> pending
@@ -100,9 +112,9 @@ src/app/
   core/
     components/
       confirm-dialog/                  # modal reutilizable
-      product-gallery/                 # galería de solo lectura de la tarjeta
-      product-images/                  # alta/límites de imágenes + carousel del formulario
-      product-status/                  # badge de etapa (draft | published)
+      gallery/                         # Gallery · app-gallery · solo lectura
+      image-selector/                  # ImageSelector · app-image-selector · selección/validación genérica
+      status-pill/                     # StatusPill · app-status-pill · label + tone
       session-bar/                     # control de sesión (entrar/salir)
     constants/
       product-stage.ts                 # 'draft' | 'published'
@@ -111,7 +123,8 @@ src/app/
       catalog-storage-keys.ts          # claves de sessionStorage
       session-status.ts                # 'anonymous' | 'authenticated'
     models/
-      catalog-product.ts               # CatalogProduct · ProductImage · Currency · EditableProduct
+      catalog-product.ts               # CatalogProduct · Currency · EditableProduct (ImageItem[])
+      image-item.ts                    # ImageItem { id, name?, url?, dataUrl?, file? }
       pending-catalog-operation.ts     # intención tras 401
     services/
       navigation/
@@ -124,6 +137,8 @@ src/app/
         panel-catalog.ts               # cliente HTTP de la frontera
         local-catalog.ts               # persistencia sessionStorage
         catalog-recovery.ts            # reintento tras 401
+      media/
+        image-carousel.ts              # estado reusable, provisto por cada componente consumidor
   views/
     catalog-list/                      # /catalog
     catalog-form/                      # /catalog/new · /catalog/:id/edit
@@ -377,7 +392,7 @@ sequenceDiagram
   end
 ```
 
-## Relaciones de estado
+## Relaciones de clases
 
 ```mermaid
 classDiagram
@@ -427,18 +442,55 @@ classDiagram
     +enterWithGoogle()
     +logout()
   }
-  class ProductStatus {
-    +input stage
+  class CatalogListView
+  class CatalogFormView {
+    +images: ImageItem[]
+    +maxImages
+    +maxImageBytes
+    +imageHelperText
+    +imageLimitExceededMessage
   }
-  class ProductGallery {
+  class StatusPill {
+    +input label
+    +input tone: accent|muted|destructive
+  }
+  class Gallery {
     +input images
+    +input alt
     +next()
     +previous()
   }
-  class ProductImages {
+  class ImageSelector {
     +input images
-    +input authenticated
+    +input maxImages
+    +input maxImageBytes
+    +input label
+    +input helperText
+    +input limitExceededMessage
+    +input accept
+    +input inputId
     +output imagesChange
+    +removeCurrent()
+    +onCarouselKeydown(event)
+  }
+  class ImageCarousel {
+    +signal items
+    +signal activeIndex
+    +computed current
+    +computed source
+    +computed total
+    +computed hasMany
+    +computed indexLabel
+    +setImages(images)
+    +next()
+    +previous()
+  }
+  class ImageItem {
+    +id
+    +name?
+    +url?
+    +dataUrl?
+    +file?
   }
   class CatalogProduct {
     +id
@@ -458,9 +510,15 @@ classDiagram
   PanelCatalog ..> CatalogProduct : respuesta
   LocalCatalog ..> CatalogProduct : persistido
   CatalogRecovery ..> CatalogProduct : payload a reintentar
-  ProductStatus ..> CatalogProduct : etapa
-  ProductGallery ..> CatalogProduct : imágenes
-  ProductImages ..> CatalogProduct : imágenes
+  CatalogProduct --> ImageItem : images
+  CatalogListView --> StatusPill : label + tone
+  CatalogListView --> Gallery : images + alt
+  CatalogFormView --> ImageSelector : límites + textos + images
+  Gallery --> ImageCarousel : provider por instancia
+  ImageSelector --> ImageCarousel : provider por instancia
+  ImageCarousel --> ImageItem : items
+  Gallery --> ImageItem : contrato genérico
+  ImageSelector --> ImageItem : contrato genérico
 ```
 
 ## Estados de un producto

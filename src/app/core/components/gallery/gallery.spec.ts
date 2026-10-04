@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ProductGallery } from './product-gallery';
+import { Gallery } from './gallery';
 
-describe('ProductGallery', () => {
-  let fixture: ComponentFixture<ProductGallery>;
+describe('Gallery', () => {
+  let fixture: ComponentFixture<Gallery>;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [ProductGallery] });
-    fixture = TestBed.createComponent(ProductGallery);
+    TestBed.configureTestingModule({ imports: [Gallery] });
+    fixture = TestBed.createComponent(Gallery);
   });
 
   it('shows the first image and cycles through the rest', async () => {
@@ -34,5 +34,13 @@ describe('ProductGallery', () => {
     expect((fixture.nativeElement.querySelector('img') as HTMLImageElement).getAttribute('src')).toBe(
       'data:image/png;base64,AAA',
     );
+  });
+
+  it('uses the supplied alternative text', async () => {
+    fixture.componentRef.setInput('images', [{ id: 'a', url: 'https://example/a.png' }]);
+    fixture.componentRef.setInput('alt', 'Vista frontal');
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement.querySelector('img') as HTMLImageElement).alt).toBe('Vista frontal');
   });
 });
