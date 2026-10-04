@@ -4,7 +4,7 @@
   >
     <button
       type="button"
-      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-1 py-1 text-left transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md px-1 py-1 text-left transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
       [attr.aria-expanded]="menuOpen()"
       aria-controls="mobile-menu"
       aria-label="Abrir menú"
@@ -23,7 +23,7 @@
     @if (session.authenticated()) {
       <button
         type="button"
-        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
         aria-label="Salir"
         title="Salir"
         (click)="session.logout()"
@@ -33,7 +33,7 @@
     } @else {
       <button
         type="button"
-        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md bg-accent text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        class="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md bg-accent text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
         aria-label="Entrar con Google"
         title="Entrar con Google"
         (click)="session.enterWithGoogle()"
@@ -55,7 +55,7 @@
             routerLink="/"
             routerLinkActive="bg-accent text-on-accent"
             [routerLinkActiveOptions]="{ exact: true }"
-            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
             (click)="closeMenu()"
           >
             <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
@@ -66,7 +66,7 @@
           <a
             routerLink="/catalog"
             routerLinkActive="bg-accent text-on-accent"
-            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
             (click)="closeMenu()"
           >
             <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
@@ -93,7 +93,7 @@
         </div>
         <button
           type="button"
-          class="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+          class="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
           [ngClass]="collapsed() ? '' : 'md:ml-auto'"
           [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
           [title]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
@@ -114,7 +114,7 @@
               routerLink="/"
               routerLinkActive="bg-accent text-on-accent"
               [routerLinkActiveOptions]="{ exact: true }"
-              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
               [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
               [attr.aria-label]="collapsed() ? 'Inicio' : null"
               [title]="collapsed() ? 'Inicio' : ''"
@@ -127,7 +127,7 @@
             <a
               routerLink="/catalog"
               routerLinkActive="bg-accent text-on-accent"
-              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
               [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
               [attr.aria-label]="collapsed() ? 'Catálogo' : null"
               [title]="collapsed() ? 'Catálogo' : ''"

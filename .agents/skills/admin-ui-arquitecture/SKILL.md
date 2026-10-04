@@ -22,6 +22,12 @@ Use this skill when adding, moving, or reviewing `panel-web` screens, routes, la
 - Place route-specific headings, cards, tables, forms, and empty states inside routed components.
 - Keep global navigation, session controls, brand, and persistent sidebar outside routed page components.
 
+## Focus Styling
+
+- Inside viewport edges or containers with `overflow`, use inset focus rings:
+  `focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring`.
+  Do not use positive `outline-offset` there; external outlines are clipped.
+
 ## Angular State And Navigation
 
 - Keep cross-application Angular building blocks under `core/` by category: `components/`, `services/`, `models/`, `constants/`, `guards/`, `interceptors/`, `directives/`, `pipes/`, `tokens/`, and similar shared concepts.

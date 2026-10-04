@@ -9,7 +9,7 @@
     <div class="hidden shrink-0 items-end gap-2 sm:flex">
       <button
         type="button"
-        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 text-sm font-medium text-accent transition-colors duration-200 ease-out hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 text-sm font-medium text-accent transition-colors duration-200 ease-out hover:bg-accent/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
         [attr.aria-disabled]="!publishCatalogEnabled()"
         [attr.aria-describedby]="publishCatalogEnabled() ? null : 'publish-catalog-hint'"
         [title]="publishCatalogEnabled() ? '' : 'Iniciá sesión y creá borradores para publicar el catálogo'"
@@ -20,7 +20,7 @@
       </button>
       <a
         routerLink="/catalog/new"
-        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
       >
         <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
         Nuevo producto
@@ -30,7 +30,7 @@
     <div class="relative shrink-0 sm:hidden">
       <button
         type="button"
-        class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+        class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
         aria-haspopup="true"
         [attr.aria-expanded]="actionsOpen()"
         aria-label="Acciones del catálogo"
@@ -46,7 +46,7 @@
         >
           <button
             type="button"
-            class="inline-flex min-h-11 items-center gap-2 px-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+            class="inline-flex min-h-11 items-center gap-2 px-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
             [attr.aria-disabled]="!publishCatalogEnabled()"
             (click)="requestPublishCatalog(); closeActions()"
           >
@@ -55,7 +55,7 @@
           </button>
           <a
             routerLink="/catalog/new"
-            class="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+            class="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
             (click)="closeActions()"
           >
             <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
@@ -76,12 +76,12 @@
         (input)="onFilterInput($event)"
         (keydown.enter)="applyFilters()"
         placeholder="Ej.: mate"
-        class="min-h-11 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        class="min-h-11 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
       />
     </div>
     <button
       type="button"
-      class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-3 text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-3 text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
       aria-label="Aplicar filtros"
       title="Aplicar filtros"
       (click)="applyFilters()"
@@ -90,7 +90,7 @@
     </button>
     <button
       type="button"
-      class="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+      class="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
       aria-label="Eliminar filtros"
       title="Eliminar filtros"
       (click)="clearFilters()"
@@ -170,7 +170,7 @@
                 @if (isDraft(product)) {
                   <button
                     type="button"
-                    class="inline-flex size-11 items-center justify-center rounded-md bg-accent text-on-accent hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-accent"
+                    class="inline-flex size-11 items-center justify-center rounded-md bg-accent text-on-accent hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-accent"
                     aria-label="Publicar"
                     [attr.aria-disabled]="!authenticated()"
                     [attr.aria-describedby]="authenticated() ? null : 'publish-hint'"
@@ -184,7 +184,7 @@
                 @if (isPublished(product)) {
                   <button
                     type="button"
-                    class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
                     aria-label="Despublicar"
                     title="Despublicar"
                     (click)="requestUnpublish(product)"
@@ -195,7 +195,7 @@
 
                 <a
                   [routerLink]="['/catalog', product.id, 'edit']"
-                  class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
                   aria-label="Editar"
                   title="Editar"
                 >
@@ -204,7 +204,7 @@
 
                 <button
                   type="button"
-                  class="inline-flex size-11 items-center justify-center rounded-md border border-destructive text-destructive hover:bg-destructive/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  class="inline-flex size-11 items-center justify-center rounded-md border border-destructive text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
                   aria-label="Eliminar"
                   title="Eliminar"
                   (click)="requestDelete(product)"
