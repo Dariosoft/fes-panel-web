@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
+import { PageLayout } from '../../core/layouts/page-layout/page-layout';
 
 @Component({
   selector: 'app-home-view',
   standalone: true,
+  imports: [PageLayout],
   templateUrl: './home.html',
-  host: { class: 'block min-h-0 flex-1 overflow-y-auto pb-4 md:pb-6' },
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
 })
 export class HomeView {}

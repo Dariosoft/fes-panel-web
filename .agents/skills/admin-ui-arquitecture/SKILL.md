@@ -15,6 +15,21 @@ Use this skill when adding, moving, or reviewing `panel-web` screens, routes, la
 - Render the current page inside the shell with `<router-outlet />`.
 - Do not duplicate the sidebar inside routed views.
 
+## Routed Page Layout
+
+Every routed view renders inside `core/layouts/page-layout` (`PageLayout`, selector `app-page-layout`), which owns the page frame so views only fill its slots:
+
+- Header (fixed, full width, height by content, positions configured per page):
+  - `[pageTitle]`: row 1 left (max 80% width).
+  - `[pageActions]`: row 1 right (auto width).
+  - `[appPageHeaderContent]`: row 2 full width (for example filters). Requires importing `PageHeaderContent`.
+  - `[appPageHeaderFooter]`: row 3 full width (reserved). Requires importing `PageHeaderFooter`.
+- Rows 2/3 are collapsible: when a view projects either, the layout renders a toggle next to `[pageActions]`; collapsing keeps only row 1 (title + actions) visible. The toggle is hidden when there is no collapsible content.
+- Default slot: the scrollable main content (full height, or 80% when a footer is present).
+- `[pageFooter]`: optional fixed bottom slot (20% height, full width), reserved for small-screen navigation or action buttons; enable with `[footer]="true"`.
+
+View hosts only fill the outlet (`flex min-h-0 flex-1 flex-col`) and project content into these slots; do not rebuild the header/scroll frame per view.
+
 ## Routing
 
 - Put routed screens under `views/<view-name>/`; avoid a generic `features/` folder for page components.

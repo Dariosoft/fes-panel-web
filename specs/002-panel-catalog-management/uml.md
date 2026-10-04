@@ -26,6 +26,8 @@ flowchart TB
   subgraph presentation["Presentación"]
     app["App<br/>shell h-dvh · nav House/Boxes<br/>colapso · menú móvil"]
     bar["SessionBar<br/>LogIn / LogOut · perfil"]
+    layout["PageLayout · app-page-layout<br/>core/layouts/page-layout/<br/>slots: pageTitle · pageActions · pageHeaderContent · pageHeaderFooter · default · pageFooter<br/>footer = input(false)"]
+    home["HomeView<br/>views/home/"]
     list["CatalogListView<br/>views/catalog-list/<br/>header + filtro + tarjetas"]
     form["CatalogFormView<br/>views/catalog-form/"]
     dialog["ConfirmDialog<br/>core/components/confirm-dialog/"]
@@ -67,13 +69,18 @@ flowchart TB
   config --> app
   config --> routes
   env --> panel
+  routes --> home
   routes --> list
   routes --> form
+  app --> home
   app --> list
   app --> form
   app --> bar
   app --> session
   bar --> session
+  home --> layout
+  list --> layout
+  form --> layout
   list --> catalog
   list --> dialog
   list --> gallery
@@ -110,6 +117,8 @@ src/app/
   app.routes.ts                        # lazy: catalog, catalog/new, catalog/:id/edit
   app.config.ts                        # provideRouter, provideHttpClient, provideAppInitializer(whenHydrated)
   core/
+    layouts/
+      page-layout/                     # PageLayout · app-page-layout · header fijo + scroll + footer opcional
     components/
       confirm-dialog/                  # modal reutilizable
       gallery/                         # Gallery · app-gallery · solo lectura
@@ -140,9 +149,25 @@ src/app/
       media/
         image-carousel.ts              # estado reusable, provisto por cada componente consumidor
   views/
+    home/                              # /
     catalog-list/                      # /catalog
     catalog-form/                      # /catalog/new · /catalog/:id/edit
 ```
+
+## Estructura de `PageLayout` (entre el shell y las vistas)
+
+`App` renderiza el `<router-outlet />`; cada vista (`HomeView`, `CatalogListView`, `CatalogFormView`) envuelve su contenido en `<app-page-layout>` (selector `app-page-layout`, input `footer = input(false)`) y proyecta por slots. El layout no conoce el catálogo ni la sesión: solo organiza el marco de la página.
+
+| Zona | Slot | Contenido | Tamaño |
+|------|------|-----------|--------|
+| Header, fila 1 izquierda | `[pageTitle]` | Título de la vista | Máx. 80% de ancho |
+| Header, fila 1 derecha | `[pageActions]` | Acciones principales | Ancho automático |
+| Header, fila 2 | `[pageHeaderContent]` | Filtros u otro contenido de header | 100% de ancho |
+| Header, fila 3 | `[pageHeaderFooter]` | Reservado | 100% de ancho |
+| Cuerpo | default | Contenido principal scrolleable | `flex-1` (80% si hay footer, 100% si no) |
+| Footer | `[pageFooter]` | Navegación/acciones en pantallas chicas (reservado) | `h-1/5`, 100% de ancho, visible con `[footer]="true"` |
+
+El header es fijo (`shrink-0`, con borde inferior); el cuerpo scrollea (`overflow-y-auto`) y concentra el padding inferior; el footer es opcional y fijo. Las vistas definen su host como `flex min-h-0 flex-1 flex-col` y ya no replican header, scroll ni padding.
 
 ## Secuencia: guardar según sesión
 
@@ -443,6 +468,16 @@ classDiagram
     +logout()
   }
   class CatalogListView
+  class HomeView
+  class PageLayout {
+    +input footer: boolean
+    +slot pageTitle
+    +slot pageActions
+    +slot pageHeaderContent
+    +slot pageHeaderFooter
+    +slot default
+    +slot pageFooter
+  }
   class CatalogFormView {
     +images: ImageItem[]
     +maxImages
@@ -511,6 +546,9 @@ classDiagram
   LocalCatalog ..> CatalogProduct : persistido
   CatalogRecovery ..> CatalogProduct : payload a reintentar
   CatalogProduct --> ImageItem : images
+  HomeView --> PageLayout : envuelve y proyecta
+  CatalogListView --> PageLayout : envuelve y proyecta
+  CatalogFormView --> PageLayout : envuelve y proyecta
   CatalogListView --> StatusPill : label + tone
   CatalogListView --> Gallery : images + alt
   CatalogFormView --> ImageSelector : límites + textos + images

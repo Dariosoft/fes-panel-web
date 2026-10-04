@@ -15,6 +15,8 @@ import {
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
 import { Gallery } from '../../core/components/gallery/gallery';
 import { StatusPill } from '../../core/components/status-pill/status-pill';
+import { PageHeaderContent } from '../../core/layouts/page-layout/page-header-slots';
+import { PageLayout } from '../../core/layouts/page-layout/page-layout';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PRODUCT_STAGE } from '../../core/constants/product-stage';
 import { CatalogProduct } from '../../core/models/catalog-product';
@@ -39,9 +41,18 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 @Component({
   selector: 'app-catalog-list-view',
   standalone: true,
-  imports: [NgClass, RouterLink, LucideAngularModule, StatusPill, Gallery, ConfirmDialog],
+  imports: [
+    NgClass,
+    RouterLink,
+    LucideAngularModule,
+    StatusPill,
+    Gallery,
+    PageLayout,
+    PageHeaderContent,
+    ConfirmDialog,
+  ],
   templateUrl: './catalog-list.html',
-  host: { class: 'flex min-h-0 flex-1 flex-col gap-4' },
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
 })
 export class CatalogListView implements OnInit {
   private readonly catalog = inject(Catalog);

@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ImageSelector } from '../../core/components/image-selector/image-selector';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
+import { PageLayout } from '../../core/layouts/page-layout/page-layout';
 import {
   MAX_IMAGES,
   MAX_IMAGES_WITHOUT_SESSION,
@@ -16,9 +17,9 @@ import { Session } from '../../core/services/session/session';
 @Component({
   selector: 'app-catalog-form-view',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ImageSelector],
+  imports: [ReactiveFormsModule, RouterLink, ImageSelector, PageLayout],
   templateUrl: './catalog-form.html',
-  host: { class: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4 md:pb-6' },
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
 })
 export class CatalogFormView implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

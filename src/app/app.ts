@@ -8,8 +8,8 @@ import {
   LogOut,
   LucideAngularModule,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from 'lucide-angular';
 import { SessionBar } from './core/components/session-bar/session-bar';
@@ -30,8 +30,8 @@ export class App {
   protected readonly menuOpen = signal(false);
   protected readonly inicioIcon = House;
   protected readonly catalogIcon = Boxes;
-  protected readonly collapseIcon = PanelLeftClose;
-  protected readonly expandIcon = PanelLeftOpen;
+  protected readonly collapseIcon = ChevronLeft;
+  protected readonly expandIcon = ChevronRight;
   protected readonly menuIcon = Menu;
   protected readonly closeIcon = X;
   protected readonly loginIcon = LogIn;

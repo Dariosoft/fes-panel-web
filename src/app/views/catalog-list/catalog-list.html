@@ -1,72 +1,71 @@
-<header class="flex shrink-0 flex-col gap-4 border-b border-border pb-4">
-  <div class="flex items-end justify-between gap-3">
-    <div class="min-w-0">
-      <p class="font-mono text-xs tracking-widest text-accent uppercase">Catálogo</p>
-      <h1 class="mt-2 font-mono text-2xl leading-tight font-medium text-foreground md:text-3xl">
-        Tus productos
-      </h1>
-    </div>
-    <div class="hidden shrink-0 items-end gap-2 sm:flex">
-      <button
-        type="button"
-        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 text-sm font-medium text-accent transition-colors duration-200 ease-out hover:bg-accent/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
-        [attr.aria-disabled]="!publishCatalogEnabled()"
-        [attr.aria-describedby]="publishCatalogEnabled() ? null : 'publish-catalog-hint'"
-        [title]="publishCatalogEnabled() ? '' : 'Iniciá sesión y creá borradores para publicar el catálogo'"
-        (click)="requestPublishCatalog()"
-      >
-        <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
-        Publicar catálogo
-      </button>
-      <a
-        routerLink="/catalog/new"
-        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-      >
-        <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
-        Nuevo producto
-      </a>
-    </div>
-
-    <div class="relative shrink-0 sm:hidden">
-      <button
-        type="button"
-        class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-        aria-haspopup="true"
-        [attr.aria-expanded]="actionsOpen()"
-        aria-label="Acciones del catálogo"
-        title="Acciones del catálogo"
-        (click)="toggleActions()"
-      >
-        <lucide-icon [img]="actionsIcon" [size]="20" aria-hidden="true" />
-      </button>
-
-      @if (actionsOpen()) {
-        <div
-          class="absolute right-0 z-20 mt-2 flex w-56 flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
-        >
-          <button
-            type="button"
-            class="inline-flex min-h-11 items-center gap-2 px-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
-            [attr.aria-disabled]="!publishCatalogEnabled()"
-            (click)="requestPublishCatalog(); closeActions()"
-          >
-            <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
-            Publicar catálogo
-          </button>
-          <a
-            routerLink="/catalog/new"
-            class="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-            (click)="closeActions()"
-          >
-            <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
-            Nuevo producto
-          </a>
-        </div>
-      }
-    </div>
+<app-page-layout>
+  <div pageTitle>
+    <p class="font-mono text-xs tracking-widest text-accent uppercase">Catálogo</p>
+    <h1 class="mt-2 font-mono text-2xl leading-tight font-medium text-foreground md:text-3xl">
+      Tus productos
+    </h1>
   </div>
 
-  <div class="flex flex-row items-end gap-2">
+  <div pageActions class="hidden shrink-0 items-end gap-2 sm:flex">
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 text-sm font-medium text-accent transition-colors duration-200 ease-out hover:bg-accent/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+      [attr.aria-disabled]="!publishCatalogEnabled()"
+      [attr.aria-describedby]="publishCatalogEnabled() ? null : 'publish-catalog-hint'"
+      [title]="publishCatalogEnabled() ? '' : 'Iniciá sesión y creá borradores para publicar el catálogo'"
+      (click)="requestPublishCatalog()"
+    >
+      <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
+      Publicar catálogo
+    </button>
+    <a
+      routerLink="/catalog/new"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+    >
+      <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
+      Nuevo producto
+    </a>
+  </div>
+
+  <div pageActions class="relative shrink-0 sm:hidden">
+    <button
+      type="button"
+      class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+      aria-haspopup="true"
+      [attr.aria-expanded]="actionsOpen()"
+      aria-label="Acciones del catálogo"
+      title="Acciones del catálogo"
+      (click)="toggleActions()"
+    >
+      <lucide-icon [img]="actionsIcon" [size]="20" aria-hidden="true" />
+    </button>
+
+    @if (actionsOpen()) {
+      <div
+        class="absolute right-0 z-20 mt-2 flex w-56 flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
+      >
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center gap-2 px-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+          [attr.aria-disabled]="!publishCatalogEnabled()"
+          (click)="requestPublishCatalog(); closeActions()"
+        >
+          <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
+          Publicar catálogo
+        </button>
+        <a
+          routerLink="/catalog/new"
+          class="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+          (click)="closeActions()"
+        >
+          <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
+          Nuevo producto
+        </a>
+      </div>
+    }
+  </div>
+
+  <div appPageHeaderContent class="flex flex-row items-end gap-2">
     <div class="flex min-w-0 flex-1 flex-col gap-2">
       <label for="catalog-search" class="text-sm font-medium text-foreground">Buscar por nombre</label>
       <input
@@ -98,9 +97,7 @@
       <lucide-icon [img]="clearIcon" [size]="18" aria-hidden="true" />
     </button>
   </div>
-</header>
 
-<div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4 md:pb-6">
   @if (hasLocalProducts()) {
     <p
       class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground"
@@ -225,7 +222,7 @@
       </ul>
     </section>
   }
-</div>
+</app-page-layout>
 
 <app-confirm-dialog
   [open]="pendingAction() !== null"

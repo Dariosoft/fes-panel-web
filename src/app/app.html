@@ -43,39 +43,46 @@
     }
   </header>
 
-  @if (menuOpen()) {
-    <nav
-      id="mobile-menu"
-      aria-label="Secciones del panel"
-      class="border-b border-white/20 bg-primary/90 px-3 pb-3 backdrop-blur-md md:hidden"
-    >
-      <ul class="flex flex-col gap-1">
-        <li>
-          <a
-            routerLink="/"
-            routerLinkActive="bg-accent text-on-accent"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-            (click)="closeMenu()"
-          >
-            <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
-            Inicio
-          </a>
-        </li>
-        <li>
-          <a
-            routerLink="/catalog"
-            routerLinkActive="bg-accent text-on-accent"
-            class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-            (click)="closeMenu()"
-          >
-            <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
-            Catálogo
-          </a>
-        </li>
-      </ul>
-    </nav>
-  }
+  <div
+    class="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none md:hidden"
+    [style.grid-template-rows]="menuOpen() ? '1fr' : '0fr'"
+  >
+    <div class="min-h-0 overflow-hidden">
+      <nav
+        id="mobile-menu"
+        aria-label="Secciones del panel"
+        class="border-b border-white/20 bg-primary/90 px-3 pb-3 backdrop-blur-md"
+        [attr.aria-hidden]="!menuOpen()"
+        [attr.inert]="menuOpen() ? null : ''"
+      >
+        <ul class="flex flex-col gap-1">
+          <li>
+            <a
+              routerLink="/"
+              routerLinkActive="bg-accent text-on-accent"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+              (click)="closeMenu()"
+            >
+              <lucide-icon [img]="inicioIcon" [size]="18" aria-hidden="true" />
+              Inicio
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/catalog"
+              routerLinkActive="bg-accent text-on-accent"
+              class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+              (click)="closeMenu()"
+            >
+              <lucide-icon [img]="catalogIcon" [size]="18" aria-hidden="true" />
+              Catálogo
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
 
   <aside
     class="hidden shrink-0 flex-col gap-6 overflow-y-auto border-b border-white/20 bg-primary/80 p-4 backdrop-blur-md transition-[width] duration-200 md:flex md:h-full md:justify-between md:border-r md:border-b-0"

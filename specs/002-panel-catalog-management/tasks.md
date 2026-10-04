@@ -138,6 +138,10 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-81
   **Done when:** `CatalogFormView` infiere `localProduct` al cargar el producto (`origin === 'local' || !owned`) y ajusta `maxImages`, `imageHelperText` e `imageLimitExceededMessage`; los tests cubren producto local con sesión (1 imagen) y producto persistido con dueño (10).
 
+- [x] **T31.** Extraer el esqueleto de página reutilizable `PageLayout` (`core/layouts/page-layout/`, selector `app-page-layout`, input `footer = input(false)`) con slots `[pageTitle]` (fila 1, izquierda, máx. 80% de ancho), `[pageActions]` (fila 1, derecha, ancho automático), `[pageHeaderContent]` (fila 2, 100% de ancho), `[pageHeaderFooter]` (fila 3, reservado), default (cuerpo scrolleable) y `[pageFooter]` (opcional, `h-1/5`, visible con `[footer]="true"`); migrar `CatalogListView`, `CatalogFormView` y `HomeView` para envolver su contenido en `<app-page-layout>` y dejar de replicar el marco de header/scroll y el padding inferior.
+  **RFs:** RF-60, RF-61, RF-77
+  **Done when:** las tres vistas usan `PageLayout` y proyectan por slots; el header queda fijo, el cuerpo scrollea (`flex-1`) y el footer opcional aparece solo con `[footer]="true"`; el aspecto visual no cambia y el spec del layout cubre la proyección de los slots y la visibilidad del footer.
+
 ## Matriz RF → tareas
 
 | RF | Tareas |
@@ -201,8 +205,8 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-57 | T25, T28 |
 | RF-58 | T25, T28 |
 | RF-59 | T25, T28 |
-| RF-60 | T26, T28 |
-| RF-61 | T26, T28 |
+| RF-60 | T26, T28, T31 |
+| RF-61 | T26, T28, T31 |
 | RF-62 | T27, T28 |
 | RF-63 | T27, T28 |
 | RF-64 | T27, T28 |
@@ -218,10 +222,10 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-74 | T20, T23, T28 |
 | RF-75 | T23, T28, T29 |
 | RF-76 | T23, T28, T29 |
-| RF-77 | T24, T28 |
+| RF-77 | T24, T28, T31 |
 | RF-78 | T20, T24, T28 |
 | RF-79 | T20, T24, T28 |
 | RF-80 | T24, T28 |
 | RF-81 | T30 |
 
-**Cobertura:** RF-1 … RF-80 (todos).
+**Cobertura:** RF-1 … RF-81 (todos).

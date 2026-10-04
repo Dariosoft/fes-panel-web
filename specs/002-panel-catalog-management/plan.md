@@ -22,6 +22,7 @@ Implementar en `panel-web` (Angular 21, SPA standalone, TypeScript estricto) la 
 ## Estado actual del proyecto (as-built)
 
 - Shell Admin UI persistente en `src/app/app.ts` / `app.html`: layout `h-dvh` con header móvil fijo, `<aside>` colapsable en escritorio, barra de filtros/secciones, `<main>` con `overflow-hidden` y `<router-outlet />`.
+- Layout de página reusable `PageLayout` (`core/layouts/page-layout/`, selector `app-page-layout`, input `footer = input(false)`): esqueleto con header fijo, cuerpo scrolleable y footer opcional; las vistas `CatalogListView`, `CatalogFormView` y `HomeView` solo proyectan contenido en sus slots.
 - `app.routes.ts`: `''` → `HomeView`; `catalog`, `catalog/new` y `catalog/:id/edit` con `loadComponent()` y `title` en español; `'**'` → redirect.
 - `app.config.ts`: `provideRouter`, `provideHttpClient()` y `provideAppInitializer` que llama `Session.hydrate()` y **espera** `Session.whenHydrated`.
 - Sesión: `Session` (signals `status`, `profile`, `notice`, `authenticated`; acciones `hydrate`, `enterWithGoogle` con `return_to`, `logout` con recarga) y `PanelSession` (`/panel/identity/*`).
@@ -46,6 +47,7 @@ Implementar en `panel-web` (Angular 21, SPA standalone, TypeScript estricto) la 
 - **Hidratación antes de renderizar:** `provideAppInitializer` devuelve `Session.whenHydrated`, que resuelve tras `getSession` (con `timeout(5000)`), evitando la carrera que dejaba el catálogo vacío al arrancar con sesión.
 - **Login/logout con ruta actual:** `Session.enterWithGoogle()` pasa `router.url` como `return_to` (`/panel/identity/login/google?return_to=...`); `Session.logout()` limpia el estado y recarga la página en la ruta actual vía `ExternalNavigation.reload()`.
 - **Layout de alto fijo:** el host del shell usa `h-dvh`, `html,body{height:100%;overflow:hidden}` y el contenido scrollea dentro de su propia caja con el padding inferior (`pb-4 md:pb-6`).
+- **Esqueleto de página reusable (`PageLayout`):** cada vista envuelve su contenido en `<app-page-layout>` y proyecta por slots (`[pageTitle]`, `[pageActions]`, `[pageHeaderContent]`, `[pageHeaderFooter]`, default y `[pageFooter]`) en vez de recrear el marco de header/scroll/padding. El layout monta un header fijo (`shrink-0`, con borde inferior) donde el título va a la izquierda (máximo 80% de ancho) y las acciones a la derecha (ancho automático), con filas de filtros y de footer de header reservadas; el cuerpo es `flex-1` scrolleable (80% del alto si hay footer, 100% si no) y el footer es fijo, `h-1/5` (20% del alto) y 100% de ancho, visible solo con `[footer]="true"` y reservado para navegación/acciones en pantallas chicas. Los hosts de las vistas quedan como `flex min-h-0 flex-1 flex-col` y ya no replican header, scroll ni padding inferior.
 
 ## Estructura de carpetas (as-built)
 
@@ -58,6 +60,8 @@ src/
     app.routes.ts                                 # '' Home; 'catalog'; 'catalog/new'; 'catalog/:id/edit'
     app.ts / app.html                             # shell h-dvh + nav (House/Boxes) + colapso + header móvil
     core/
+      layouts/
+        page-layout/                              # PageLayout (app-page-layout): header fijo + scroll + footer opcional
       components/
         confirm-dialog/                           # modal reutilizable (foco atrapado, Escape, cancelable)
         gallery/                                  # Gallery (app-gallery): galería genérica de solo lectura
@@ -96,7 +100,8 @@ src/
 
 | Capa | Responsabilidad | No hace |
 |------|-----------------|---------|
-| Presentación (`views/catalog-list`, `views/catalog-form`, `core/components/*`, `App`) | Shell colapsable/responsive; listado con separación accesible; header con filtro y acciones; formularios; modales; galería; badges de etapa; estados de carga/vacío/error; accesibilidad | No construye URLs de API ni decide la persistencia ni la posesión |
+| Presentación (`views/catalog-list`, `views/catalog-form`, `views/home`, `core/components/*`, `App`) | Shell colapsable/responsive; listado con separación accesible; header con filtro y acciones; formularios; modales; galería; badges de etapa; estados de carga/vacío/error; accesibilidad | No construye URLs de API ni decide la persistencia ni la posesión |
+| Layout (`core/layouts/page-layout`) | Esqueleto de página reutilizable: header fijo con slots de título/acciones/filtros, cuerpo scrolleable y footer opcional | No conoce el catálogo, la sesión ni la persistencia |
 | Estado (`core/services/catalog/catalog.ts`) | Fuente de verdad del listado visible (locales sin dueño + servidor de la cuenta), filtro (backend + local), orden, etapa/posesión y acciones (guardar, publicar, despublicar, eliminar, publicar catálogo) | No habla HTTP directo ni toca `sessionStorage` |
 | HTTP (`core/services/catalog/panel-catalog.ts`) | Solo `{apiBaseUrl}/panel/catalog/*` con credenciales; `?name=` y `multipart/form-data` | No traduce dominio ni persiste local |
 | Almacenamiento local (`core/services/catalog/local-catalog.ts`) | CRUD de productos locales en `sessionStorage` | No llama a la red |
@@ -147,7 +152,9 @@ Todas con `withCredentials: true`. El cuerpo de crear/actualizar es `FormData` (
 **Cubre:** RF-1, RF-2, RF-3, RF-4, RF-54–RF-61, RF-77–RF-80
 
 - `App` (`app.ts`/`app.html`): contenedor `flex h-dvh flex-col overflow-hidden md:flex-row`. Header móvil fijo (`md:hidden`) con logo, texto «Panel», botón de menú (`Menu`/`X`) y control de sesión. `<aside>` oculto en móvil y visible en `md+`, con `collapsed` que lo lleva a `md:w-16` (solo iconos) o `md:w-60`, y toggle `PanelLeftClose`/`PanelLeftOpen`. Navegación con `routerLink`/`routerLinkActive`: Inicio (`House`) y Catálogo (`Boxes`); `session-bar` emite entrar (`LogIn`) o salir (`LogOut`). El menú móvil se abre con `menuOpen` y cada opción llama `closeMenu()`.
-- `main` con `overflow-hidden` y `<router-outlet />`; el padding inferior vive en el contenido scrollable de cada vista.
+- `main` con `overflow-hidden` y `<router-outlet />`; el scroll y el padding inferior viven en `PageLayout`, no en cada vista.
+- `PageLayout` (`core/layouts/page-layout/page-layout.ts`, selector `app-page-layout`, input `footer = input(false)`) es el esqueleto de página reutilizable. Slots por proyección: `[pageTitle]` (fila 1, izquierda, máximo 80% de ancho), `[pageActions]` (fila 1, derecha, ancho automático), `[pageHeaderContent]` (fila 2, 100% de ancho; p. ej. filtros), `[pageHeaderFooter]` (fila 3, reservado), contenido default (cuerpo principal scrolleable) y `[pageFooter]` (opcional, fijo, 20% de alto y 100% de ancho, reservado para navegación/acciones en pantallas chicas; visible con `[footer]="true"`). El header es fijo (`shrink-0`, borde inferior); el cuerpo es `flex-1` (80% si hay footer, 100% si no); el footer es `h-1/5` y queda oculto si `footer()` es `false`.
+- `CatalogListView`, `CatalogFormView` y `HomeView` envuelven su contenido en `<app-page-layout>` usando esos slots; sus hosts son `flex min-h-0 flex-1 flex-col` y ya no definen el marco de header/scroll ni el padding inferior. `CatalogListView` conserva `app-confirm-dialog` fuera del layout.
 - `app.routes.ts`: `catalog` → `CatalogListView`, `catalog/new` y `catalog/:id/edit` → `CatalogFormView`, con `loadComponent()` y `title` en español.
 - `styles.css`: `html,body{height:100%}` y `body{overflow:hidden}` para el alto fijo sin scroll de cuerpo.
 
@@ -256,7 +263,7 @@ Todas con `withCredentials: true`. El cuerpo de crear/actualizar es `FormData` (
 ## Cambios de UI (Admin Panel)
 
 - Conservar el lenguaje visual Admin UI actual (Tailwind v4 + Fira Sans / Fira Code, tema oscuro) y el aside persistente (`/ui-ux-pro-max`, `/admin-ui-arquitectura`).
-- Shell de alto fijo: header fijo, contenido con scroll propio y padding inferior dentro del área scrollable.
+- Shell de alto fijo: el header de cada vista vive en `PageLayout` (fijo, con borde inferior), el contenido scrollea dentro de su caja `flex-1` y el padding inferior queda en esa área scrolleable; el footer opcional (`h-1/5`) se reserva para navegación/acciones en pantallas chicas.
 - Listado sin títulos de grupo visibles, separación accesible por `aria-label`; tarjetas con borde rojo cuando no tienen dueño y aviso `role="status"` de productos locales.
 - Header con título a la izquierda y acciones a la derecha (`items-end`); filtro por nombre dentro del header; en `sm+` botones inline «Publicar catálogo» y «Nuevo producto», en móvil un menú `EllipsisVertical`.
 - Acciones de tarjeta solo-icono con `aria-label`/`title`; jerarquía clara y acciones destructivas en color `destructive`.
@@ -274,6 +281,7 @@ Alineado con `AGENTS.md` (`npm test` = unit + lint + build):
 | «Catálogo» en el aside; rutas `catalog`, `catalog/new`, `catalog/:id/edit` | RF-1–RF-4 |
 | Nav con iconos, colapso en escritorio, barra y menú móvil | RF-54–RF-59 |
 | Layout `h-dvh` sin scroll de body; padding en contenido scrollable | RF-60, RF-61 |
+| `PageLayout` proyecta título/acciones/filtros/cuerpo por slots y muestra u oculta el footer según `footer` | RF-60, RF-61, RF-77 |
 | Listado sin sesión (solo locales) / con sesión (sin dueño + servidor); sin títulos visibles | RF-5–RF-7, RF-70 |
 | Orden por creación reciente; filtro por backend `?name=`; locales en cliente; aplicar/limpiar | RF-8, RF-9, RF-65–RF-69 |
 | Tarjeta: solo etapa, borde rojo sin dueño, galería a la derecha, acciones icon-only, aviso de locales | RF-71–RF-76 |
@@ -292,7 +300,7 @@ Alineado con `AGENTS.md` (`npm test` = unit + lint + build):
 | 401 → login + reintento único de la operación | RF-53 |
 | Hidratación antes de renderizar; login con `return_to`; logout recarga la ruta actual | RF-62–RF-64 |
 
-Unitarios prioritarios: `Catalog` (grupos, orden, filtro backend/local, guardar local/servidor, publicar/despublicar/eliminar/publicar catálogo con mocks), `PanelCatalog` (paths, `?name=`, credenciales y 401), `LocalCatalog` (`sessionStorage`), `CatalogRecovery` (recordar/reintentar/descartar), `Session`/`PanelSession` (`return_to`, `reload`) y las vistas con `TestBed`. Demo manual móvil/escritorio del flujo principal.
+Unitarios prioritarios: `Catalog` (grupos, orden, filtro backend/local, guardar local/servidor, publicar/despublicar/eliminar/publicar catálogo con mocks), `PanelCatalog` (paths, `?name=`, credenciales y 401), `LocalCatalog` (`sessionStorage`), `CatalogRecovery` (recordar/reintentar/descartar), `Session`/`PanelSession` (`return_to`, `reload`), `PageLayout` (proyección de slots y visibilidad del footer) y las vistas con `TestBed`. Demo manual móvil/escritorio del flujo principal.
 
 ## Matriz de cobertura de RF
 
