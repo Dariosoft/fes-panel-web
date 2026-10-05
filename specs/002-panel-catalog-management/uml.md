@@ -26,13 +26,15 @@ flowchart TB
   subgraph presentation["Presentación"]
     app["App<br/>shell h-dvh · nav House/Boxes<br/>colapso · menú móvil"]
     bar["SessionBar<br/>LogIn / LogOut · perfil"]
-    layout["PageLayout · app-page-layout<br/>core/layouts/page-layout/<br/>slots: pageTitle · pageActions · pageHeaderContent · pageHeaderFooter · default · pageFooter<br/>footer = input(false)"]
+    layout["PageLayout · app-page-layout<br/>core/layouts/page-layout/<br/>slots: pageTitle · pageActions · appPageHeaderContent · appPageHeaderFooter · default · pageFooter<br/>header colapsable (filas 2/3) · footer content-sized"]
     home["HomeView<br/>views/home/"]
     list["CatalogListView<br/>views/catalog-list/<br/>header + filtro + tarjetas"]
-    form["CatalogFormView<br/>views/catalog-form/"]
+    form["CatalogFormView<br/>views/catalog-form/<br/>pageActions sm+ · pageFooter móvil"]
+    floating["FloatingMenu · app-floating-menu<br/>core/components/floating-menu/<br/>speed-dial móvil · items"]
+    select["Select · app-select<br/>core/components/select/<br/>CVA · listbox ARIA · options + controlId"]
     dialog["ConfirmDialog<br/>core/components/confirm-dialog/"]
     selector["ImageSelector · app-image-selector<br/>core/components/image-selector/<br/>inputs genéricos + imagesChange"]
-    gallery["Gallery · app-gallery<br/>core/components/gallery/<br/>images + alt · solo lectura"]
+    gallery["Gallery · app-gallery<br/>core/components/gallery/<br/>images + alt · canvas constante · solo lectura"]
     status["StatusPill · app-status-pill<br/>core/components/status-pill/<br/>label + tone"]
   end
 
@@ -85,8 +87,10 @@ flowchart TB
   list --> dialog
   list --> gallery
   list --> status
+  list --> floating
   form --> catalog
   form --> selector
+  form --> select
   form --> imageItem
   selector --> carousel
   selector --> imageItem
@@ -121,8 +125,10 @@ src/app/
       page-layout/                     # PageLayout · app-page-layout · header fijo + scroll + footer opcional
     components/
       confirm-dialog/                  # modal reutilizable
-      gallery/                         # Gallery · app-gallery · solo lectura
+      floating-menu/                   # FloatingMenu · app-floating-menu · speed-dial móvil
+      gallery/                         # Gallery · app-gallery · canvas constante · solo lectura
       image-selector/                  # ImageSelector · app-image-selector · selección/validación genérica
+      select/                          # Select · app-select · dropdown accesible (ControlValueAccessor)
       status-pill/                     # StatusPill · app-status-pill · label + tone
       session-bar/                     # control de sesión (entrar/salir)
     constants/
@@ -162,12 +168,12 @@ src/app/
 |------|------|-----------|--------|
 | Header, fila 1 izquierda | `[pageTitle]` | Título de la vista | Máx. 80% de ancho |
 | Header, fila 1 derecha | `[pageActions]` | Acciones principales | Ancho automático |
-| Header, fila 2 | `[pageHeaderContent]` | Filtros u otro contenido de header | 100% de ancho |
-| Header, fila 3 | `[pageHeaderFooter]` | Reservado | 100% de ancho |
-| Cuerpo | default | Contenido principal scrolleable | `flex-1` (80% si hay footer, 100% si no) |
-| Footer | `[pageFooter]` | Navegación/acciones en pantallas chicas (reservado) | `h-1/5`, 100% de ancho, visible con `[footer]="true"` |
+| Header, fila 2 | `[appPageHeaderContent]` | Filtros u otro contenido de header (`PageHeaderContent`) | 100% de ancho · colapsable |
+| Header, fila 3 | `[appPageHeaderFooter]` | Reservado (`PageHeaderFooter`) | 100% de ancho · colapsable |
+| Cuerpo | default | Contenido principal scrolleable | `flex-1` |
+| Footer | `[pageFooter]` | Acciones en pantallas chicas (lo estiliza la vista) | Content-sized, 100% de ancho, visible con `[footer]="true"` |
 
-El header es fijo (`shrink-0`, con borde inferior); el cuerpo scrollea (`overflow-y-auto`) y concentra el padding inferior; el footer es opcional y fijo. Las vistas definen su host como `flex min-h-0 flex-1 flex-col` y ya no replican header, scroll ni padding.
+Las filas 2/3 son colapsables con una señal `collapsed` y un botón `ChevronUp`/`ChevronDown` junto al título (visible solo si hay contenido colapsable): el colapso anima `grid-template-rows` (`auto 1fr 1fr → auto 0fr 0fr`) y el `gap`. El header es fijo (`shrink-0`, con borde inferior); el cuerpo scrollea (`overflow-y-auto`) y concentra el padding inferior; el footer es opcional, fijo, content-sized y sin chrome propio. Las vistas definen su host como `flex min-h-0 flex-1 flex-col` y ya no replican header, scroll ni padding.
 
 ## Secuencia: guardar según sesión
 
@@ -471,12 +477,35 @@ classDiagram
   class HomeView
   class PageLayout {
     +input footer: boolean
+    +signal collapsed
+    +computed collapsible
+    +computed gridTemplateRows
+    +toggleHeader()
     +slot pageTitle
     +slot pageActions
-    +slot pageHeaderContent
-    +slot pageHeaderFooter
+    +slot appPageHeaderContent
+    +slot appPageHeaderFooter
     +slot default
     +slot pageFooter
+  }
+  class FloatingMenu {
+    +input items: FloatingMenuItem[]
+    +input icon
+    +input closeIcon
+    +input menuLabel
+    +input closeLabel
+    +signal open
+    +toggle()
+    +select(item)
+  }
+  class Select {
+    +input options: SelectOption[]
+    +input controlId
+    +input placeholder
+    +signal value
+    +signal open
+    +writeValue(value)
+    +onKeydown(event)
   }
   class CatalogFormView {
     +images: ImageItem[]
@@ -551,7 +580,9 @@ classDiagram
   CatalogFormView --> PageLayout : envuelve y proyecta
   CatalogListView --> StatusPill : label + tone
   CatalogListView --> Gallery : images + alt
+  CatalogListView --> FloatingMenu : items
   CatalogFormView --> ImageSelector : límites + textos + images
+  CatalogFormView --> Select : formControlName currency
   Gallery --> ImageCarousel : provider por instancia
   ImageSelector --> ImageCarousel : provider por instancia
   ImageCarousel --> ImageItem : items

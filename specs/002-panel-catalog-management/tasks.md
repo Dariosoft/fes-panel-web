@@ -110,9 +110,9 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-15, RF-73, RF-74, RF-75, RF-76
   **Done when:** la tarjeta no muestra posesión; cada acción tiene icono + etiqueta accesible; la galería aparece solo con imágenes y no permite editar.
 
-- [x] **T24.** Rehacer el header de `/catalog`: título a la izquierda y acciones a la derecha con `items-end`, filtro dentro del header; en `sm+` botones inline «Publicar catálogo» (`Eye`) y «Nuevo producto» (`Plus`) con icono+texto; en pantallas chicas un único botón `EllipsisVertical` con menú de esas dos opciones que se cierra al elegir.
+- [x] **T24.** Rehacer el header de `/catalog`: título a la izquierda y acciones a la derecha con `items-end`, filtro dentro del header; en `sm+` botones inline «Publicar catálogo» (`Eye`) y «Nuevo producto» (`Plus`) con icono+texto; en pantallas chicas un botón flotante circular (`FloatingMenu`) con submenú de esas dos opciones que se cierra al elegir. (Sustituye al primer intento con `EllipsisVertical`.)
   **RFs:** RF-77, RF-78, RF-79, RF-80
-  **Done when:** en escritorio se ven los dos botones inline; en móvil hay un solo botón con menú; el menú cierra al elegir y las opciones respetan el estado de sesión.
+  **Done when:** en escritorio se ven los dos botones inline; en móvil hay un único botón flotante con submenú; el submenú cierra al elegir y las opciones respetan el estado de sesión.
 
 - [x] **T25.** Rediseñar el shell: navegación con iconos (`House`/`Boxes`) y sesión (`LogIn`/`LogOut`); colapso del menú lateral en escritorio (solo iconos, `PanelLeftClose`/`PanelLeftOpen`); barra superior fija en móvil (logo + «Panel» + menú + sesión) con navegación lateral oculta que se abre al tocar y se cierra al elegir.
   **RFs:** RF-54, RF-55, RF-56, RF-57, RF-58, RF-59
@@ -138,9 +138,25 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
   **RFs:** RF-81
   **Done when:** `CatalogFormView` infiere `localProduct` al cargar el producto (`origin === 'local' || !owned`) y ajusta `maxImages`, `imageHelperText` e `imageLimitExceededMessage`; los tests cubren producto local con sesión (1 imagen) y producto persistido con dueño (10).
 
-- [x] **T31.** Extraer el esqueleto de página reutilizable `PageLayout` (`core/layouts/page-layout/`, selector `app-page-layout`, input `footer = input(false)`) con slots `[pageTitle]` (fila 1, izquierda, máx. 80% de ancho), `[pageActions]` (fila 1, derecha, ancho automático), `[pageHeaderContent]` (fila 2, 100% de ancho), `[pageHeaderFooter]` (fila 3, reservado), default (cuerpo scrolleable) y `[pageFooter]` (opcional, `h-1/5`, visible con `[footer]="true"`); migrar `CatalogListView`, `CatalogFormView` y `HomeView` para envolver su contenido en `<app-page-layout>` y dejar de replicar el marco de header/scroll y el padding inferior.
-  **RFs:** RF-60, RF-61, RF-77
-  **Done when:** las tres vistas usan `PageLayout` y proyectan por slots; el header queda fijo, el cuerpo scrollea (`flex-1`) y el footer opcional aparece solo con `[footer]="true"`; el aspecto visual no cambia y el spec del layout cubre la proyección de los slots y la visibilidad del footer.
+- [x] **T31.** Extraer el esqueleto de página reutilizable `PageLayout` (`core/layouts/page-layout/`, selector `app-page-layout`, input `footer = input(false)`) con slots `[pageTitle]` (fila 1, izquierda, máx. 80% de ancho), `[pageActions]` (fila 1, derecha, ancho automático), `[appPageHeaderContent]` (fila 2, 100% de ancho; `PageHeaderContent`), `[appPageHeaderFooter]` (fila 3, reservada; `PageHeaderFooter`), default (cuerpo scrolleable) y `[pageFooter]` (opcional, content-sized, visible con `[footer]="true"`); migrar `CatalogListView`, `CatalogFormView` y `HomeView` para envolver su contenido en `<app-page-layout>` y dejar de replicar el marco de header/scroll y el padding inferior.
+  **RFs:** RF-60, RF-61, RF-77, RF-83
+  **Done when:** las tres vistas usan `PageLayout` y proyectan por slots; el header queda fijo, el cuerpo scrollea (`flex-1`) y el footer opcional aparece solo con `[footer]="true"`; el spec del layout cubre la proyección de los slots y la visibilidad del footer.
+
+- [x] **T32.** Hacer colapsables las filas 2/3 del header de `PageLayout`: señal `collapsed`, `computed` de pistas `grid-template-rows` (`auto 1fr 1fr ↔ auto 0fr 0fr`) y `gap`, botón `ChevronUp`/`ChevronDown` junto al título (visible solo si hay contenido colapsable), con `motion-reduce`. Cambiar el footer a content-sized (sin `h-1/5` ni chrome propio) para que cada vista lo estile y pueda ocultarlo por breakpoint.
+  **RFs:** RF-83
+  **Done when:** el header colapsa/expande suavemente sin huecos fantasma y el footer refleja el contenido proyectado.
+
+- [x] **T33.** Crear el componente reusable `FloatingMenu` (`core/components/floating-menu/`, selector `app-floating-menu`) y usarlo en `CatalogListView` en lugar del menú `EllipsisVertical`: FAB circular abajo-derecha (`sm:hidden`) con submenú configurable (`items`), animación escalonada, cierre por Escape/click afuera, `inert`/`aria-hidden` cerrado y wrapper `pointer-events-none` para no bloquear el contenido. Reservar espacio inferior (spacer `h-16 sm:hidden`) para que no tape la última tarjeta.
+  **RFs:** RF-79, RF-80, RF-82, RF-87
+  **Done when:** en móvil las acciones salen del FAB; el FAB no cubre ni bloquea el contenido detrás; en `sm+` no aparece.
+
+- [x] **T34.** Crear el componente reusable `Select` (`core/components/select/`, selector `app-select`) como `ControlValueAccessor` con listbox ARIA propio (chevron y popover anclados, teclado, click afuera) y usarlo para la moneda en `CatalogFormView` (`formControlName="currency"`, `controlId` enlazado al `<label for>`), reemplazando el `<select>` nativo.
+  **RFs:** RF-85
+  **Done when:** la moneda se elige con un control accesible que ancla el menú al campo y no usa la flecha nativa.
+
+- [x] **T35.** Colocación responsiva de acciones en `CatalogFormView`: «Cancelar»/«Guardar» en `[pageActions]` del header en `sm+` y en `[pageFooter]` al 50% en móvil (ocultando la copia del header), con `form="product-form"` en los submit. Ajustar `Gallery`: canvas de ancho fijo con `<img>` absoluta que no aporta altura (tarjetas con y sin imagen del mismo alto) y navegación corrida a la izquierda para no quedar bajo el FAB.
+  **RFs:** RF-82, RF-84, RF-86, RF-87
+  **Done when:** en móvil las acciones del formulario van abajo al 50%; en `sm+` en el header; las tarjetas miden igual con o sin imagen y las flechas del carrusel no quedan tapadas por el FAB.
 
 ## Matriz RF → tareas
 
@@ -224,8 +240,14 @@ Ordenadas por dependencia. Cada tarea ~20–30 min. No implementar fuera de este
 | RF-76 | T23, T28, T29 |
 | RF-77 | T24, T28, T31 |
 | RF-78 | T20, T24, T28 |
-| RF-79 | T20, T24, T28 |
-| RF-80 | T24, T28 |
+| RF-79 | T20, T24, T28, T33 |
+| RF-80 | T24, T28, T33 |
 | RF-81 | T30 |
+| RF-82 | T33, T35 |
+| RF-83 | T31, T32 |
+| RF-84 | T35 |
+| RF-85 | T34 |
+| RF-86 | T35 |
+| RF-87 | T33, T35 |
 
-**Cobertura:** RF-1 … RF-81 (todos).
+**Cobertura:** RF-1 … RF-87 (todos).

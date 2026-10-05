@@ -1,7 +1,7 @@
 # Spec 002 — Catálogo: ABM local, estados y publicación
 
 ## Contexto y objetivo
-El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta y editar productos aun sin iniciar sesión, guardándolos en la sesión local del navegador. Al iniciar sesión, esos productos locales **no** se asocian automáticamente: quedan aislados en un grupo propio y solo pasan a la cuenta cuando se publican, individualmente («Publicar») o en conjunto («Publicar catálogo»). Cada producto tiene una etapa (`draft`/`published`) y una posesión (con o sin dueño); publicar, despublicar y eliminar pasan por un modal de confirmación y, según la posesión, operan en el servidor vía `fes-panel-api` o solo en la sesión local. El listado se busca por nombre con una acción explícita resuelta por el backend (`GET /panel/catalog/products?name=...`), sin filtrado en vivo, y los locales sin dueño se filtran en el cliente. El shell del panel es responsive: menú lateral colapsable en escritorio, barra superior con menú desplegable en móvil y layout de alto fijo con scroll solo del contenido. El panel no define el esquema definitivo de productos ni sube imágenes a MinIO.
+El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta y editar productos aun sin iniciar sesión, guardándolos en la sesión local del navegador. Al iniciar sesión, esos productos locales **no** se asocian automáticamente: quedan aislados en un grupo propio y solo pasan a la cuenta cuando se publican, individualmente («Publicar») o en conjunto («Publicar catálogo»). Cada producto tiene una etapa (`draft`/`published`) y una posesión (con o sin dueño); publicar, despublicar y eliminar pasan por un modal de confirmación y, según la posesión, operan en el servidor vía `fes-panel-api` o solo en la sesión local. El listado se busca por nombre con una acción explícita resuelta por el backend (`GET /panel/catalog/products?name=...`), sin filtrado en vivo, y los locales sin dueño se filtran en el cliente. El shell del panel es responsive: menú lateral colapsable en escritorio, barra superior con menú desplegable en móvil y layout de alto fijo con scroll solo del contenido. Las acciones principales se ubican en el header en pantallas grandes y en la parte inferior en pantallas chicas (footer del formulario o botón flotante en el listado). El panel no define el esquema definitivo de productos ni sube imágenes a MinIO.
 
 ## Usuarios / actores
 - Vendedor u operador que usa el panel de administración, con o sin sesión.
@@ -100,7 +100,7 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 - RF-55: EL SISTEMA mostrará en el control de sesión los iconos `LogIn` para entrar y `LogOut` para salir según el estado de la sesión.
 - RF-56: EL SISTEMA permitirá colapsar y expandir el menú lateral en escritorio, mostrando solo los iconos y alternando los iconos `PanelLeftClose` y `PanelLeftOpen`.
 - RF-57: MIENTRAS la pantalla sea de tamaño móvil, EL SISTEMA mostrará una barra superior fija con el logo, el texto «Panel», el botón de menú y el control de sesión, y ocultará la navegación lateral.
-- RF-58: CUANDO el usuario toca la barra superior en móvil, EL SISTEMA abrirá el menú de navegación.
+- RF-58: CUANDO el usuario toca la barra superior en móvil, EL SISTEMA abrirá el menú de navegación desplegándolo con una transición de alto.
 - RF-59: CUANDO el usuario elige una opción del menú de navegación móvil, EL SISTEMA cerrará el menú.
 - RF-60: EL SISTEMA usará una altura fija de viewport, sin scroll del cuerpo, manteniendo el header fijo y permitiendo scroll solo dentro del contenido.
 - RF-61: EL SISTEMA aplicará el padding inferior al contenedor con scroll del contenido.
@@ -129,8 +129,17 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 ### Header de la página de catálogo
 - RF-77: EL SISTEMA mostrará en el header de `/catalog` el título a la izquierda y las acciones a la derecha alineadas al pie, con la barra de filtros dentro del header.
 - RF-78: MIENTRAS la pantalla sea `sm` o mayor, EL SISTEMA mostrará inline los botones «Publicar catálogo» (icono `Eye`) y «Nuevo producto» (icono `Plus`) con icono y texto.
-- RF-79: MIENTRAS la pantalla sea menor que `sm`, EL SISTEMA mostrará un único botón `EllipsisVertical` que abre un menú con «Publicar catálogo» y «Nuevo producto» (icono y texto).
-- RF-80: CUANDO el usuario elige una opción del menú de acciones, EL SISTEMA cerrará el menú.
+- RF-79: MIENTRAS la pantalla sea menor que `sm`, EL SISTEMA mostrará las acciones «Publicar catálogo» y «Nuevo producto» mediante un botón flotante circular (`FloatingMenu`, `app-floating-menu`) anclado abajo a la derecha, con un submenú que se despliega al activarlo.
+- RF-80: CUANDO el usuario elige una opción del `FloatingMenu`, EL SISTEMA ejecutará la acción y cerrará el submenú.
+
+### Colocación responsiva de acciones y layout
+
+- RF-82: EL SISTEMA ubicará las acciones principales en el header (`[pageActions]`) en pantallas `sm` o mayores, y en la parte inferior de la pantalla en pantallas menores que `sm`.
+- RF-83: CUANDO una vista proyecte contenido en las filas 2/3 del header, EL SISTEMA mostrará un control para colapsar/expandir esas filas (dejando visible solo la fila 1, título y acciones) con los iconos `ChevronUp`/`ChevronDown`, animando la transición de alto; lo ocultará cuando no haya contenido colapsable.
+- RF-84: MIENTRAS la pantalla sea menor que `sm`, EL SISTEMA mostrará en el footer de la vista de alta/edición los botones «Cancelar» y «Guardar» en una sola fila, cada uno al 50% del ancho; MIENTRAS sea `sm` o mayor, los mostrará en el header y ocultará el footer.
+- RF-85: EL SISTEMA ofrecerá la moneda mediante un control de selección accesible (`Select`, `app-select`) que ancla el menú al control, usa un chevron propio y soporta teclado y click afuera.
+- RF-86: EL SISTEMA dará a la galería de la tarjeta un canvas de tamaño constante e independiente del aspect ratio de la imagen, de modo que las tarjetas con imagen midan igual que las que no la tienen y la imagen cubra y quede centrada.
+- RF-87: MIENTRAS la pantalla sea menor que `sm`, EL SISTEMA reservará espacio inferior en el contenido con scroll y ubicará la navegación del carrusel fuera del sector del botón flotante, para que este no tape las acciones de la tarjeta.
 
 ## Requisitos no funcionales
 - Textos de interfaz en español.
@@ -141,6 +150,8 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 - El listado y el formulario muestran estados de carga, vacío y error.
 - La navegación es accesible en escritorio y móvil: los controles solo-icono exponen `aria-label` y `title`.
 - El shell mantiene una altura fija de viewport y evita el scroll del cuerpo; solo el contenido scrollea.
+- Las acciones principales respetan la colocación responsiva: header en pantallas grandes; footer (formulario) o botón flotante (listado) en pantallas chicas.
+- Los componentes reutilizables de layout e interacción (`PageLayout`, `FloatingMenu`, `Select`, `Gallery`) son domain-neutral y viven en `core/`.
 
 ## Casos límite
 - Alta sin sesión: el producto queda solo en la sesión local y no se publica (RF-20).
@@ -158,8 +169,12 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 - Cancelar un modal: no se ejecuta la acción.
 - Filtro sin resultados: el listado muestra el estado vacío correspondiente (RF-65, RF-68).
 - Productos locales guardados: aviso de posible pérdida al cerrar la página (RF-72).
-- Menú móvil abierto: se cierra al elegir una opción (RF-59); menú de acciones móvil: se cierra al elegir (RF-80).
+- Menú móvil abierto: se cierra al elegir una opción (RF-59); submenú del botón flotante: se cierra al elegir (RF-80).
 - Sesión no resuelta al arrancar: las vistas esperan la hidratación (RF-62).
+- Pantalla chica en el listado: las acciones usan el botón flotante y el contenido reserva espacio inferior para no tapar la última tarjeta (RF-79, RF-87).
+- Pantalla chica en el formulario: «Cancelar»/«Guardar» en el footer al 50% (RF-84); en pantallas grandes, en el header (RF-82).
+- Header de página con filtros (fila 2): puede colapsarse a la fila de título/acciones (RF-83).
+- Tarjetas con y sin imagen miden igual gracias al canvas de tamaño constante de la galería (RF-86).
 
 ## Fuera de alcance
 - Definir el esquema de productos y persistir de forma definitiva (vive en `fes-catalog-api`).
@@ -179,6 +194,7 @@ El panel necesita una sección «Catálogo» donde un vendedor pueda dar de alta
 - El shell es responsive: menú colapsable en escritorio y barra superior con menú en móvil; el layout no genera scroll de cuerpo.
 - La hidratación de la sesión precede al renderizado; el login conserva la ruta y el logout recarga la ruta actual.
 - Textos de interfaz en español y comprobación visual del catálogo en móvil y escritorio.
+- Colocación responsiva de acciones verificada (header/footer/botón flotante), header de página colapsable y tarjetas con y sin imagen del mismo alto.
 
 ## Dudas abiertas
 Ninguna.
