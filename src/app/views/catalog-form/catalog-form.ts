@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ImageSelector } from '../../core/components/image-selector/image-selector';
+import { Select, SelectOption } from '../../core/components/select/select';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PageLayout } from '../../core/layouts/page-layout/page-layout';
 import {
@@ -17,7 +18,7 @@ import { Session } from '../../core/services/session/session';
 @Component({
   selector: 'app-catalog-form-view',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ImageSelector, PageLayout],
+  imports: [ReactiveFormsModule, RouterLink, ImageSelector, Select, PageLayout],
   templateUrl: './catalog-form.html',
   host: { class: 'flex min-h-0 flex-1 flex-col' },
 })
@@ -38,6 +39,10 @@ export class CatalogFormView implements OnInit {
     this.authenticated() && !this.localProduct() ? MAX_IMAGES : MAX_IMAGES_WITHOUT_SESSION,
   );
   readonly maxImageBytes = MAX_IMAGE_BYTES;
+  readonly currencyOptions: readonly SelectOption[] = [
+    { value: 'ARS', label: 'ARS' },
+    { value: 'USD', label: 'USD' },
+  ];
   readonly imageHelperText = computed(() => {
     if (this.localProduct()) {
       return 'Este producto todavía es local. Publicalo para adjuntar hasta 10 imágenes.';

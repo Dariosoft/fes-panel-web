@@ -25,10 +25,18 @@ Every routed view renders inside `core/layouts/page-layout` (`PageLayout`, selec
   - `[appPageHeaderContent]`: row 2 full width (for example filters). Requires importing `PageHeaderContent`.
   - `[appPageHeaderFooter]`: row 3 full width (reserved). Requires importing `PageHeaderFooter`.
 - Rows 2/3 are collapsible: when a view projects either, the layout renders a toggle next to `[pageActions]`; collapsing keeps only row 1 (title + actions) visible. The toggle is hidden when there is no collapsible content.
-- Default slot: the scrollable main content (full height, or 80% when a footer is present).
-- `[pageFooter]`: optional fixed bottom slot (20% height, full width), reserved for small-screen navigation or action buttons; enable with `[footer]="true"`.
+- Default slot: the scrollable main content (takes the remaining space, shrinking when a footer is present).
+- `[pageFooter]`: optional fixed bottom slot, content-sized (full width), reserved for small-screen navigation or action buttons; enable with `[footer]="true"`. The layout adds no chrome, so style the projected element (border, background, padding) and hide it per breakpoint (for example `sm:hidden`); when its content is hidden the slot collapses to zero height.
 
 View hosts only fill the outlet (`flex min-h-0 flex-1 flex-col`) and project content into these slots; do not rebuild the header/scroll frame per view.
+
+## Responsive Action Placement
+
+- Wide screens (`sm` and up): keep primary actions in the header via `[pageActions]`, so navigation and actions stay together at the top.
+- Small screens (below `sm`): move actions to the bottom, close to the thumb, choosing the resource per screen type:
+  - Edit/create screens (forms): project the actions into the `[pageFooter]` slot and hide the header copy with `hidden ... sm:flex`; use full-width buttons on a single row (for example cancel/save at 50% each).
+  - List/dashboard/home screens: use `FloatingMenu` (`app-floating-menu`) with `class="sm:hidden"` instead of a header overflow menu.
+- Do not keep duplicate actions or a header overflow (`...`) menu on small screens; each breakpoint should surface the actions once.
 
 ## Routing
 
@@ -51,6 +59,8 @@ View hosts only fill the outlet (`flex min-h-0 flex-1 flex-col`) and project con
 - Components under `core/components/` must be domain-neutral: generic names, inputs,
   models, and text. A component tied to one route/domain belongs under
   `views/<view-name>/components/` unless it is abstracted first.
+- `FloatingMenu` (`app-floating-menu`) is the reusable mobile speed-dial fixed bottom-right: pass `items` (`id`, `label`, `icon`, `action`, optional `disabled`) and optionally `icon`, `closeIcon`, `menuLabel`, `closeLabel`. Hide it on wide screens from the view with `class="sm:hidden"`, and prefer it over header overflow (`...`) menus for small-screen primary actions.
+- `Select` (`app-select`) is the reusable dropdown for form controls: a `ControlValueAccessor`, so use it with `formControlName`; pass `options` (`{ value, label }`) and `controlId` (matching the `<label for>` id). Prefer it over native `<select>` to keep the chevron and the popover anchored and styled consistently. Keyboard and ARIA listbox behavior are built in.
 - Provide reusable UI state services at component scope when state must not leak
   between component instances (for example, an image carousel index).
 - Put shared models and DTO-like types under `core/models/`; do not hide them inside service folders.

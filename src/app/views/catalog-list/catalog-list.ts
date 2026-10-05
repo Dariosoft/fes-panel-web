@@ -1,8 +1,7 @@
 import { NgClass } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
-  EllipsisVertical,
   Eye,
   EyeOff,
   Funnel,
@@ -13,6 +12,10 @@ import {
   Trash2,
 } from 'lucide-angular';
 import { ConfirmDialog } from '../../core/components/confirm-dialog/confirm-dialog';
+import {
+  FloatingMenu,
+  FloatingMenuItem,
+} from '../../core/components/floating-menu/floating-menu';
 import { Gallery } from '../../core/components/gallery/gallery';
 import { StatusPill } from '../../core/components/status-pill/status-pill';
 import { PageHeaderContent } from '../../core/layouts/page-layout/page-header-slots';
@@ -50,6 +53,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
     PageLayout,
     PageHeaderContent,
     ConfirmDialog,
+    FloatingMenu,
   ],
   templateUrl: './catalog-list.html',
   host: { class: 'flex min-h-0 flex-1 flex-col' },
@@ -57,6 +61,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 export class CatalogListView implements OnInit {
   private readonly catalog = inject(Catalog);
   private readonly session = inject(Session);
+  private readonly router = inject(Router);
 
   readonly authenticated = this.session.authenticated;
   readonly loading = this.catalog.loading;
@@ -71,8 +76,22 @@ export class CatalogListView implements OnInit {
   readonly deleteIcon = Trash2;
   readonly publishCatalogIcon = Eye;
   readonly newProductIcon = Plus;
-  readonly actionsIcon = EllipsisVertical;
-  readonly actionsOpen = signal(false);
+
+  readonly floatingActions = computed<readonly FloatingMenuItem[]>(() => [
+    {
+      id: 'new-product',
+      label: 'Nuevo producto',
+      icon: this.newProductIcon,
+      action: () => void this.router.navigate(['/catalog', 'new']),
+    },
+    {
+      id: 'publish-catalog',
+      label: 'Publicar catálogo',
+      icon: this.publishCatalogIcon,
+      disabled: !this.publishCatalogEnabled(),
+      action: () => this.requestPublishCatalog(),
+    },
+  ]);
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);
@@ -144,14 +163,6 @@ export class CatalogListView implements OnInit {
   clearFilters(): void {
     this.filterDraft.set('');
     this.catalog.clearFilters();
-  }
-
-  toggleActions(): void {
-    this.actionsOpen.update((value) => !value);
-  }
-
-  closeActions(): void {
-    this.actionsOpen.set(false);
   }
 
   isDraft(product: CatalogProduct): boolean {

@@ -27,44 +27,6 @@
     </a>
   </div>
 
-  <div pageActions class="relative shrink-0 sm:hidden">
-    <button
-      type="button"
-      class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-      aria-haspopup="true"
-      [attr.aria-expanded]="actionsOpen()"
-      aria-label="Acciones del catálogo"
-      title="Acciones del catálogo"
-      (click)="toggleActions()"
-    >
-      <lucide-icon [img]="actionsIcon" [size]="20" aria-hidden="true" />
-    </button>
-
-    @if (actionsOpen()) {
-      <div
-        class="absolute right-0 z-20 mt-2 flex w-56 flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
-      >
-        <button
-          type="button"
-          class="inline-flex min-h-11 items-center gap-2 px-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
-          [attr.aria-disabled]="!publishCatalogEnabled()"
-          (click)="requestPublishCatalog(); closeActions()"
-        >
-          <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
-          Publicar catálogo
-        </button>
-        <a
-          routerLink="/catalog/new"
-          class="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
-          (click)="closeActions()"
-        >
-          <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
-          Nuevo producto
-        </a>
-      </div>
-    }
-  </div>
-
   <div appPageHeaderContent class="flex flex-row items-end gap-2">
     <div class="flex min-w-0 flex-1 flex-col gap-2">
       <label for="catalog-search" class="text-sm font-medium text-foreground">Buscar por nombre</label>
@@ -223,6 +185,12 @@
     </section>
   }
 </app-page-layout>
+
+<app-floating-menu
+  class="sm:hidden"
+  menuLabel="Acciones del catálogo"
+  [items]="floatingActions()"
+/>
 
 <app-confirm-dialog
   [open]="pendingAction() !== null"

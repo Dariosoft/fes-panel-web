@@ -61,6 +61,22 @@ describe('CatalogFormView', () => {
     expect(fixture.componentInstance.heading).toBe('Nuevo producto');
   });
 
+  it('projects the save and cancel actions into the page footer', async () => {
+    await configure(null);
+
+    const footer: HTMLElement = fixture.nativeElement.querySelector('app-page-layout footer');
+    expect(footer.textContent).toContain('Guardar');
+    expect(footer.textContent).toContain('Cancelar');
+  });
+
+  it('projects the save and cancel actions into the page header', async () => {
+    await configure(null);
+
+    const header: HTMLElement = fixture.nativeElement.querySelector('app-page-layout header');
+    expect(header.textContent).toContain('Guardar');
+    expect(header.textContent).toContain('Cancelar');
+  });
+
   it('shows a field error and does not save when the form is invalid', async () => {
     await configure(null);
 
