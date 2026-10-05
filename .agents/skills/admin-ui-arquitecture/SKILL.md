@@ -37,6 +37,7 @@ View hosts only fill the outlet (`flex min-h-0 flex-1 flex-col`) and project con
   - Edit/create screens (forms): project the actions into the `[pageFooter]` slot and hide the header copy with `hidden ... sm:flex`; use full-width buttons on a single row (for example cancel/save at 50% each).
   - List/dashboard/home screens: use `FloatingMenu` (`app-floating-menu`) with `class="sm:hidden"` instead of a header overflow menu.
 - Do not keep duplicate actions or a header overflow (`...`) menu on small screens; each breakpoint should surface the actions once.
+- The `FloatingMenu` is fixed and floats over content, so screens that show it must reserve bottom space on small screens (for example a trailing `h-16 sm:hidden` spacer) so it never covers the last row or its controls (gallery arrows, buttons).
 
 ## Routing
 

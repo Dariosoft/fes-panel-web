@@ -1,13 +1,13 @@
 <div
-  class="relative h-28 w-28 shrink-0 overflow-hidden rounded-md border border-white/20 bg-background sm:h-36 sm:w-36"
+  class="relative w-36 self-stretch overflow-hidden rounded-md border border-white/20 bg-background sm:w-44"
 >
   @if (source()) {
-    <img [src]="source()" [alt]="alt()" class="h-full w-full object-cover" />
+    <img [src]="source()" [alt]="alt()" class="absolute inset-0 h-full w-full object-cover" />
   }
 
   @if (hasMany()) {
     <div
-      class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 px-1 py-0.5"
+      class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 py-0.5 pr-12 pl-1 sm:pr-1"
     >
       <button
         type="button"

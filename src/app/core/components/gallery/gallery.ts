@@ -6,6 +6,7 @@ import { ImageCarousel } from '../../services/media/image-carousel';
   selector: 'app-gallery',
   standalone: true,
   templateUrl: './gallery.html',
+  host: { class: 'flex shrink-0' },
   providers: [ImageCarousel],
 })
 export class Gallery {
