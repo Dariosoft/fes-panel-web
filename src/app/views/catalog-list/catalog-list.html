@@ -1,0 +1,205 @@
+<app-page-layout>
+  <div pageTitle>
+    <p class="font-mono text-xs tracking-widest text-accent uppercase">Catálogo</p>
+    <h1 class="mt-2 font-mono text-2xl leading-tight font-medium text-foreground md:text-3xl">
+      Tus productos
+    </h1>
+  </div>
+
+  <div pageActions class="hidden shrink-0 items-end gap-2 sm:flex">
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 text-sm font-medium text-accent transition-colors duration-200 ease-out hover:bg-accent/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+      [attr.aria-disabled]="!publishCatalogEnabled()"
+      [attr.aria-describedby]="publishCatalogEnabled() ? null : 'publish-catalog-hint'"
+      [title]="publishCatalogEnabled() ? '' : 'Iniciá sesión y creá borradores para publicar el catálogo'"
+      (click)="requestPublishCatalog()"
+    >
+      <lucide-icon [img]="publishCatalogIcon" [size]="18" aria-hidden="true" />
+      Publicar catálogo
+    </button>
+    <a
+      routerLink="/catalog/new"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+    >
+      <lucide-icon [img]="newProductIcon" [size]="18" aria-hidden="true" />
+      Nuevo producto
+    </a>
+  </div>
+
+  <div appPageHeaderContent class="flex flex-row items-end gap-2">
+    <div class="flex min-w-0 flex-1 flex-col gap-2">
+      <label for="catalog-search" class="text-sm font-medium text-foreground">Buscar por nombre</label>
+      <input
+        id="catalog-search"
+        type="search"
+        [value]="filterDraft()"
+        (input)="onFilterInput($event)"
+        (keydown.enter)="applyFilters()"
+        placeholder="Ej.: mate"
+        class="min-h-11 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+      />
+    </div>
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-3 text-on-accent transition-colors duration-200 ease-out hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+      aria-label="Aplicar filtros"
+      title="Aplicar filtros"
+      (click)="applyFilters()"
+    >
+      <lucide-icon [img]="applyIcon" [size]="18" aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-3 text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+      aria-label="Eliminar filtros"
+      title="Eliminar filtros"
+      (click)="clearFilters()"
+    >
+      <lucide-icon [img]="clearIcon" [size]="18" aria-hidden="true" />
+    </button>
+  </div>
+
+  @if (hasLocalProducts()) {
+    <p
+      class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground"
+      role="status"
+    >
+      Tenés productos guardados solo en este navegador. Si cerrás la página se pueden perder:
+      guardalos o publicalos para conservarlos.
+    </p>
+  }
+
+  <span id="publish-hint" class="sr-only">Iniciá sesión para publicar.</span>
+  <span id="publish-catalog-hint" class="sr-only">
+    Iniciá sesión y creá borradores para publicar el catálogo.
+  </span>
+
+  @if (loading()) {
+    <p class="text-sm text-muted-foreground" role="status">Cargando productos…</p>
+  }
+
+  @if (error()) {
+    <p class="rounded-md border border-destructive bg-card px-3 py-2 text-sm text-foreground" role="alert">
+      {{ error() }}
+    </p>
+  }
+
+  @if (actionError()) {
+    <p class="rounded-md border border-destructive bg-card px-3 py-2 text-sm text-foreground" role="alert">
+      {{ actionError() }}
+    </p>
+  }
+
+  @if (!loading() && groups().length === 0) {
+    <div class="rounded-md border border-dashed border-border p-5 text-center">
+      @if (filter()) {
+        <p class="text-sm text-muted-foreground">No hay productos que coincidan con la búsqueda.</p>
+      } @else {
+        <p class="text-sm text-muted-foreground">Todavía no cargaste productos.</p>
+        <a routerLink="/catalog/new" class="mt-2 inline-block text-sm font-medium text-accent underline">
+          Crear el primero
+        </a>
+      }
+    </div>
+  }
+
+  @for (group of groups(); track group.heading) {
+    <section class="flex flex-col gap-3" [attr.aria-label]="group.heading">
+      <ul class="grid gap-3 lg:grid-cols-2">
+        @for (product of group.products; track product.id) {
+          <li
+            class="flex gap-3 rounded-md border border-white/20 bg-card/80 p-4 backdrop-blur-md"
+            [ngClass]="{ 'inset-ring-1 inset-ring-destructive/60': !product.owned }"
+          >
+            <div class="flex min-w-0 flex-1 flex-col gap-3">
+              <div class="min-w-0">
+                <p class="truncate text-base font-medium text-foreground">{{ product.name }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  {{ product.price }} {{ product.currency }}
+                  @if (product.stock !== undefined) {
+                    <span>· Stock: {{ product.stock }}</span>
+                  }
+                </p>
+              </div>
+
+              <app-status-pill
+                [label]="isPublished(product) ? 'Etapa: Publicado' : 'Etapa: Borrador'"
+                [tone]="isPublished(product) ? 'accent' : 'muted'"
+              />
+
+              <div class="flex flex-wrap gap-2">
+                @if (isDraft(product)) {
+                  <button
+                    type="button"
+                    class="inline-flex size-11 items-center justify-center rounded-md bg-accent text-on-accent hover:bg-accent/90 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-accent"
+                    aria-label="Publicar"
+                    [attr.aria-disabled]="!authenticated()"
+                    [attr.aria-describedby]="authenticated() ? null : 'publish-hint'"
+                    [title]="authenticated() ? 'Publicar' : 'Iniciá sesión para publicar'"
+                    (click)="requestPublish(product)"
+                  >
+                    <lucide-icon [img]="publishIcon" [size]="18" aria-hidden="true" />
+                  </button>
+                }
+
+                @if (isPublished(product)) {
+                  <button
+                    type="button"
+                    class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+                    aria-label="Despublicar"
+                    title="Despublicar"
+                    (click)="requestUnpublish(product)"
+                  >
+                    <lucide-icon [img]="unpublishIcon" [size]="18" aria-hidden="true" />
+                  </button>
+                }
+
+                <a
+                  [routerLink]="['/catalog', product.id, 'edit']"
+                  class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+                  aria-label="Editar"
+                  title="Editar"
+                >
+                  <lucide-icon [img]="editIcon" [size]="18" aria-hidden="true" />
+                </a>
+
+                <button
+                  type="button"
+                  class="inline-flex size-11 items-center justify-center rounded-md border border-destructive text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+                  aria-label="Eliminar"
+                  title="Eliminar"
+                  (click)="requestDelete(product)"
+                >
+                  <lucide-icon [img]="deleteIcon" [size]="18" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            @if (product.images.length > 0) {
+              <app-gallery [images]="product.images" [alt]="product.name" />
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <div class="h-16 sm:hidden" aria-hidden="true"></div>
+</app-page-layout>
+
+<app-floating-menu
+  class="sm:hidden"
+  menuLabel="Acciones del catálogo"
+  [items]="floatingActions()"
+/>
+
+<app-confirm-dialog
+  [open]="pendingAction() !== null"
+  [title]="dialogTitle()"
+  [message]="dialogMessage()"
+  [confirmLabel]="dialogConfirmLabel()"
+  [destructive]="dialogDestructive()"
+  (confirmed)="confirmAction()"
+  (cancelled)="cancelAction()"
+/>

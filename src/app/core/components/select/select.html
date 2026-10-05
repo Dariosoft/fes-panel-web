@@ -1,0 +1,50 @@
+<div class="relative">
+  <button
+    type="button"
+    role="combobox"
+    aria-haspopup="listbox"
+    [id]="controlId() || null"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-activedescendant]="activeDescendant()"
+    [disabled]="disabled()"
+    class="flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-left text-sm text-foreground focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+    (click)="toggle()"
+    (keydown)="onKeydown($event)"
+    (blur)="markTouched()"
+  >
+    <span class="truncate">{{ selectedLabel() }}</span>
+    <lucide-icon
+      [img]="chevron()"
+      [size]="18"
+      class="shrink-0 text-muted-foreground transition-transform duration-200 ease-out motion-reduce:transition-none"
+      [class.rotate-180]="open()"
+      aria-hidden="true"
+    />
+  </button>
+
+  @if (open()) {
+    <ul
+      [id]="listboxId"
+      role="listbox"
+      class="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 overflow-y-auto rounded-md border border-border bg-card py-1 shadow-lg"
+    >
+      @for (option of options(); track option.value; let i = $index) {
+        <li
+          [id]="optionId(option)"
+          role="option"
+          tabindex="-1"
+          [attr.aria-selected]="option.value === value()"
+          class="flex cursor-pointer items-center px-3 py-2 text-sm text-foreground"
+          [class.bg-muted]="i === activeIndex()"
+          (mouseenter)="activeIndex.set(i)"
+          (click)="select(option)"
+          (keydown.enter)="select(option)"
+          (keydown.space)="select(option)"
+        >
+          {{ option.label }}
+        </li>
+      }
+    </ul>
+  }
+</div>

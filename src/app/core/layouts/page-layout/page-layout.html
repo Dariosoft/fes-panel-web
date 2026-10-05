@@ -1,0 +1,53 @@
+<div class="flex min-h-0 w-full flex-1 flex-col">
+  <header class="shrink-0 border-b border-border pb-4">
+    <div
+      class="grid transition-[grid-template-rows,gap] duration-200 ease-out motion-reduce:transition-none"
+      [style.grid-template-rows]="gridTemplateRows()"
+      [style.gap]="collapsed() ? '0' : '1rem'"
+    >
+      <div class="flex items-end justify-between gap-3">
+        <div class="flex min-w-0 max-w-[80%] items-end gap-2">
+          <div class="min-w-0">
+            <ng-content select="[pageTitle]" />
+          </div>
+          @if (collapsible()) {
+            <button
+              type="button"
+              class="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-border text-foreground transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+              [attr.aria-expanded]="!collapsed()"
+              [attr.aria-label]="collapsed() ? 'Expandir encabezado' : 'Colapsar encabezado'"
+              [title]="collapsed() ? 'Expandir encabezado' : 'Colapsar encabezado'"
+              (click)="toggleHeader()"
+            >
+              <lucide-icon
+                [img]="collapsed() ? expandIcon : collapseIcon"
+                [size]="18"
+                aria-hidden="true"
+              />
+            </button>
+          }
+        </div>
+        <ng-content select="[pageActions]" />
+      </div>
+
+      @if (headerContent()) {
+        <div class="min-h-0 overflow-hidden">
+          <ng-content select="[appPageHeaderContent]" />
+        </div>
+      }
+      @if (headerFooter()) {
+        <div class="min-h-0 overflow-hidden">
+          <ng-content select="[appPageHeaderFooter]" />
+        </div>
+      }
+    </div>
+  </header>
+
+  <section class="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-4 md:pb-6">
+    <ng-content />
+  </section>
+
+  <footer class="w-full shrink-0" [class.hidden]="!footer()">
+    <ng-content select="[pageFooter]" />
+  </footer>
+</div>

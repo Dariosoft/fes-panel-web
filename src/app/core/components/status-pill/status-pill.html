@@ -1,0 +1,14 @@
+<div class="flex flex-wrap items-center gap-2">
+  <span
+    class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+    [class.border-accent]="tone() === 'accent'"
+    [class.text-accent]="tone() === 'accent'"
+    [class.border-muted-foreground]="tone() === 'muted'"
+    [class.text-muted-foreground]="tone() === 'muted'"
+    [class.border-destructive]="tone() === 'destructive'"
+    [class.text-destructive]="tone() === 'destructive'"
+  >
+    <span aria-hidden="true">{{ tone() === 'muted' ? '○' : '●' }}</span>
+    {{ label() }}
+  </span>
+</div>

@@ -8,4 +8,8 @@ export class ExternalNavigation {
   navigateTo(url: string): void {
     this.document.location.assign(url);
   }
+
+  reload(): void {
+    this.document.location.reload();
+  }
 }

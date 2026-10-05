@@ -1,0 +1,75 @@
+<div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-2">
+    <label [for]="inputId()" class="text-sm font-medium text-foreground">{{ label() }}</label>
+    <input
+      [id]="inputId()"
+      type="file"
+      [accept]="accept()"
+      multiple
+      [attr.aria-describedby]="helperText() ? inputId() + '-helper' : null"
+      class="block w-full text-sm text-muted-foreground file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+      (change)="onFilesSelected($event)"
+    />
+
+    @if (helperText()) {
+      <p [id]="inputId() + '-helper'" class="text-xs text-muted-foreground">{{ helperText() }}</p>
+    }
+
+    @if (errorMessage()) {
+      <p class="text-xs text-destructive" role="alert">{{ errorMessage() }}</p>
+    }
+  </div>
+
+  @if (current(); as image) {
+    <div
+      class="flex flex-col gap-2 rounded-md border border-border bg-card p-3"
+      tabindex="0"
+      role="group"
+      aria-roledescription="carrusel"
+      [attr.aria-label]="label()"
+      (keydown)="onCarouselKeydown($event)"
+    >
+      <img
+        [src]="source()"
+        [alt]="image.name ?? 'Imagen seleccionada'"
+        class="h-48 w-full rounded-md object-contain"
+      />
+
+      <div class="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+          aria-label="Imagen anterior"
+          (click)="previous()"
+        >
+          ‹
+        </button>
+
+        <span class="font-mono text-xs text-muted-foreground" aria-live="polite">{{ indexLabel() }}</span>
+
+        <button
+          type="button"
+          class="inline-flex size-11 items-center justify-center rounded-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+          aria-label="Imagen siguiente"
+          (click)="next()"
+        >
+          ›
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="inline-flex min-h-11 items-center justify-center rounded-md border border-destructive px-3 text-sm font-medium text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring"
+        (click)="removeCurrent()"
+      >
+        Quitar imagen
+      </button>
+    </div>
+  } @else {
+    <p
+      class="flex h-48 items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground"
+    >
+      Todavía no hay imágenes.
+    </p>
+  }
+</div>
