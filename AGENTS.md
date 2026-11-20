@@ -9,8 +9,13 @@ Se compila como contenido estático y nginx lo sirve en el puerto 8080 con fallb
 - Instalar: `npm ci`
 - Ejecutar: `npm start`
 - Tests: `npm test`
+- Cobertura: `npm run coverage` genera `coverage/panel-web/`; `npm run coverage:check` exige un mínimo de 80 % de líneas.
+- Verificación completa: `npm run verify` (lint, cobertura con umbral y build de producción).
 - Compilar: `npm run build`
 - Lint: `npm run lint`; valida TypeScript, componentes y templates Angular.
+- SonarQube: `sonar-project.properties` define el `projectKey`, la organización y el reporte lcov; el CI ejecuta `SonarSource/sonarqube-scan-action` con `SONAR_TOKEN` y espera el Quality Gate.
+- SBOM: `npx --no-install cyclonedx-npm --output-file bom.json`; el CI lo escanea con Trivy.
+- Hook local: activar una vez por clon con `git config core.hooksPath .githooks`; bloquea commits con credenciales obvias.
 
 ## Estilo y convenciones
 - Usa Angular 21, componentes standalone, TypeScript estricto y templates estrictos.
