@@ -57,7 +57,8 @@ jobs:
         run: npm run verify
 
       - name: Generate SBOM
-        run: npx --no-install cyclonedx-npm --output-file bom.json
+        # Trivy accepts CycloneDX up to 1.6; cyclonedx-npm 7 defaults to 1.7.
+        run: npx --no-install cyclonedx-npm --output-file bom.json --spec-version 1.6
 
       - name: Dependency vulnerability report (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
