@@ -6,6 +6,7 @@ import { Select, SelectOption } from '../../core/components/select/select';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PageLayout } from '../../core/layouts/page-layout/page-layout';
 import {
+  MAX_DESCRIPTION_LENGTH,
   MAX_IMAGES,
   MAX_IMAGES_WITHOUT_SESSION,
   MAX_IMAGE_BYTES,
@@ -65,6 +66,7 @@ export class CatalogFormView implements OnInit {
     price: [0, [Validators.required, Validators.min(0)]],
     currency: ['ARS' as Currency, Validators.required],
     stock: [null as number | null, Validators.min(0)],
+    description: ['', Validators.maxLength(MAX_DESCRIPTION_LENGTH)],
   });
 
   private productId?: string;
@@ -94,6 +96,7 @@ export class CatalogFormView implements OnInit {
           price: product.price,
           currency: product.currency,
           stock: product.stock ?? null,
+          description: product.description ?? '',
         });
       },
       error: () => this.loadError.set('No se pudo cargar el producto.'),
@@ -107,12 +110,14 @@ export class CatalogFormView implements OnInit {
     }
 
     const value = this.form.getRawValue();
+    const description = (value.description ?? '').trim();
     const product: EditableProduct = {
       id: this.productId,
       name: value.name ?? '',
       price: value.price ?? 0,
       currency: value.currency ?? 'ARS',
       stock: value.stock ?? undefined,
+      description: description.length > 0 ? description : null,
       images: this.images(),
     };
 
@@ -121,7 +126,7 @@ export class CatalogFormView implements OnInit {
     this.catalog.save(product).subscribe({
       next: () => {
         this.saving.set(false);
-        void this.router.navigate(['/catalog']);
+        void this.router.navigate(['/catalog'], { queryParams: { guardado: 'producto' } });
       },
       error: () => {
         this.saving.set(false);

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PRODUCT_STAGE } from '../../core/constants/product-stage';
 import { CatalogProduct } from '../../core/models/catalog-product';
@@ -21,6 +21,7 @@ describe('CatalogFormView', () => {
     name: 'Mate',
     price: 1500,
     currency: 'ARS',
+    description: null,
     stage: PRODUCT_STAGE.draft,
     owned: false,
     origin: PRODUCT_ORIGIN.local,
@@ -97,7 +98,9 @@ describe('CatalogFormView', () => {
     expect(catalog.save).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Mate', price: 1500, currency: 'ARS' }),
     );
-    expect(navigate).toHaveBeenCalledWith(['/catalog']);
+    expect(navigate).toHaveBeenCalledWith(['/catalog'], {
+      queryParams: { guardado: 'producto' },
+    });
   });
 
   it('sends undefined stock when the optional field is empty', async () => {
@@ -145,5 +148,91 @@ describe('CatalogFormView', () => {
     await configure('missing');
 
     expect(fixture.nativeElement.textContent).toContain('No encontramos el producto');
+  });
+
+  it('prefills the product description when editing', async () => {
+    catalog.getProduct = vi.fn(() =>
+      of(buildProduct({ id: 'local-1', description: 'Mate de madera' })),
+    );
+    await configure('local-1');
+
+    expect(fixture.componentInstance.form.value.description).toBe('Mate de madera');
+  });
+
+  it('sends the trimmed product description', async () => {
+    await configure(null);
+
+    fixture.componentInstance.form.patchValue({
+      name: 'Mate',
+      price: 1500,
+      description: '  Mate de madera  ',
+    });
+    fixture.componentInstance.submit();
+    await fixture.whenStable();
+
+    expect(catalog.save.mock.calls[0][0].description).toBe('Mate de madera');
+  });
+
+  it('sends null when the optional description is blank', async () => {
+    await configure(null);
+
+    fixture.componentInstance.form.patchValue({
+      name: 'Mate',
+      price: 1500,
+      description: '   ',
+    });
+    fixture.componentInstance.submit();
+    await fixture.whenStable();
+
+    expect(catalog.save.mock.calls[0][0].description).toBeNull();
+  });
+
+  it('accepts a 1000 character description', async () => {
+    await configure(null);
+
+    fixture.componentInstance.form.patchValue({
+      name: 'Mate',
+      price: 1500,
+      description: 'a'.repeat(1000),
+    });
+    fixture.componentInstance.submit();
+    await fixture.whenStable();
+
+    expect(catalog.save).toHaveBeenCalled();
+  });
+
+  it('blocks a description over 1000 characters with the limit message', async () => {
+    await configure(null);
+
+    fixture.componentInstance.form.patchValue({
+      name: 'Mate',
+      price: 1500,
+      description: 'a'.repeat(1001),
+    });
+    fixture.componentInstance.submit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(catalog.save).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(
+      'La descripción no puede superar los 1000 caracteres.',
+    );
+  });
+
+  it('keeps the description when saving fails', async () => {
+    catalog.save = vi.fn(() => throwError(() => new Error('boom')));
+    await configure(null);
+
+    fixture.componentInstance.form.patchValue({
+      name: 'Mate',
+      price: 1500,
+      description: 'Mate de madera',
+    });
+    fixture.componentInstance.submit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.value.description).toBe('Mate de madera');
+    expect(fixture.nativeElement.textContent).toContain('No se pudo guardar el producto.');
   });
 });

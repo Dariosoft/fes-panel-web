@@ -1,6 +1,6 @@
 import { NgClass } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   Eye,
   EyeOff,
@@ -61,6 +61,7 @@ const ACTION_LABELS: Record<CatalogActionKind, string> = {
 export class CatalogListView implements OnInit {
   private readonly catalog = inject(Catalog);
   private readonly session = inject(Session);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly authenticated = this.session.authenticated;
@@ -95,6 +96,7 @@ export class CatalogListView implements OnInit {
 
   readonly pendingAction = signal<CatalogAction | null>(null);
   readonly actionError = signal<string | null>(null);
+  readonly savedNotice = signal(false);
 
   readonly hasLocalProducts = computed(() => this.catalog.localGroup().length > 0);
 
@@ -150,6 +152,20 @@ export class CatalogListView implements OnInit {
 
   ngOnInit(): void {
     this.catalog.load();
+    this.showSavedNotice();
+  }
+
+  private showSavedNotice(): void {
+    if (this.route.snapshot.queryParamMap.get('guardado') !== 'producto') {
+      return;
+    }
+
+    this.savedNotice.set(true);
+    void this.router.navigate([], {
+      queryParams: { guardado: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   onFilterInput(event: Event): void {

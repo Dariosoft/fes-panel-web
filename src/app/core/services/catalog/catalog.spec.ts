@@ -28,6 +28,7 @@ describe('Catalog', () => {
       name: 'Mate',
       price: 1500,
       currency: 'ARS',
+      description: null,
       stage: PRODUCT_STAGE.draft,
       owned,
       origin: PRODUCT_ORIGIN.server,
@@ -117,7 +118,7 @@ describe('Catalog', () => {
   });
 
   it('saves locally without touching the network when there is no session', () => {
-    catalog.save({ name: 'Mate', price: 1500, currency: 'ARS', images: [] }).subscribe();
+    catalog.save({ name: 'Mate', price: 1500, currency: 'ARS', description: null, images: [] }).subscribe();
 
     expect(catalog.localGroup()).toHaveLength(1);
     expect(catalog.localGroup()[0]).toMatchObject({
@@ -133,7 +134,7 @@ describe('Catalog', () => {
 
     let saved: CatalogProduct | undefined;
     catalog
-      .save({ name: 'Mate', price: 1500, currency: 'ARS', images: [] })
+      .save({ name: 'Mate', price: 1500, currency: 'ARS', description: null, images: [] })
       .subscribe((product) => (saved = product));
 
     const request = httpTesting.expectOne(productsUrl);
@@ -153,7 +154,7 @@ describe('Catalog', () => {
       .flush([buildProduct({ id: 'server-1', name: 'Mate' })]);
 
     catalog
-      .save({ id: 'server-1', name: 'Mate imperial', price: 1800, currency: 'ARS', images: [] })
+      .save({ id: 'server-1', name: 'Mate imperial', price: 1800, currency: 'ARS', description: null, images: [] })
       .subscribe();
 
     const request = httpTesting.expectOne(`${productsUrl}/server-1`);
@@ -173,7 +174,7 @@ describe('Catalog', () => {
     httpTesting.expectOne(productsUrl).flush([]);
 
     catalog
-      .save({ id: 'local-1', name: 'Mate editado', price: 900, currency: 'ARS', images: [] })
+      .save({ id: 'local-1', name: 'Mate editado', price: 900, currency: 'ARS', description: null, images: [] })
       .subscribe();
 
     expect(catalog.localGroup()[0].name).toBe('Mate editado');
@@ -309,7 +310,7 @@ describe('Catalog', () => {
   it('remembers a 401 and retries the operation once when the session returns', () => {
     authenticated = true;
     catalog
-      .save({ name: 'Mate', price: 1500, currency: 'ARS', images: [] })
+      .save({ name: 'Mate', price: 1500, currency: 'ARS', description: null, images: [] })
       .subscribe({ error: () => undefined });
 
     httpTesting.expectOne(productsUrl).flush('unauthorized', {
@@ -346,5 +347,50 @@ describe('Catalog', () => {
     });
 
     expect(sessionStorage.getItem(CATALOG_STORAGE_KEYS.pendingOperation)).toBeNull();
+  });
+
+  it('stores and returns the local product description', () => {
+    catalog
+      .save({ name: 'Mate', price: 1500, currency: 'ARS', description: 'Hola', images: [] })
+      .subscribe();
+
+    expect(catalog.localGroup()[0].description).toBe('Hola');
+  });
+
+  it('keeps the local description when publishing', () => {
+    authenticated = true;
+    localCatalog.upsert(
+      buildProduct({
+        id: 'local-1',
+        origin: PRODUCT_ORIGIN.local,
+        owned: false,
+        description: 'Hola',
+      }),
+    );
+    catalog.load();
+    httpTesting.expectOne(productsUrl).flush([]);
+
+    catalog.publish(catalog.localGroup()[0]).subscribe();
+
+    const createRequest = httpTesting.expectOne(productsUrl);
+    expect(createRequest.request.method).toBe('POST');
+    expect((createRequest.request.body as FormData).get('description')).toBe('Hola');
+    createRequest.flush(buildProduct({ id: 'server-1' }));
+
+    httpTesting
+      .expectOne(`${productsUrl}/server-1/publish`)
+      .flush(buildProduct({ id: 'server-1', stage: PRODUCT_STAGE.published }));
+  });
+
+  it('reads legacy local products without description as null', () => {
+    const legacy = {
+      ...buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
+    };
+    delete (legacy as Partial<CatalogProduct>).description;
+    sessionStorage.setItem(CATALOG_STORAGE_KEYS.localProducts, JSON.stringify([legacy]));
+
+    catalog.load();
+
+    expect(catalog.localGroup()[0].description).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { shopUnsavedChangesGuard } from './views/shop/shop-unsaved-changes.guard';
 import { HomeView } from './views/home/home';
 
 export const routes: Routes = [
@@ -24,6 +25,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./views/catalog-form/catalog-form').then((module) => module.CatalogFormView),
     title: 'Editar producto | Friendly E-Shop',
+  },
+  {
+    path: 'shop',
+    loadComponent: () => import('./views/shop/shop').then((module) => module.ShopView),
+    title: 'Mi tienda | Friendly E-Shop',
+    canDeactivate: [shopUnsavedChangesGuard],
   },
   {
     path: '**',

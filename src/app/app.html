@@ -79,6 +79,19 @@
               Catálogo
             </a>
           </li>
+          @if (session.authenticated()) {
+            <li>
+              <a
+                routerLink="/shop"
+                routerLinkActive="bg-accent text-on-accent"
+                class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+                (click)="closeMenu()"
+              >
+                <lucide-icon [img]="shopIcon" [size]="18" aria-hidden="true" />
+                Mi tienda
+              </a>
+            </li>
+          }
         </ul>
       </nav>
     </div>
@@ -143,6 +156,21 @@
               <span [ngClass]="collapsed() ? 'md:hidden' : ''">Catálogo</span>
             </a>
           </li>
+          @if (session.authenticated()) {
+            <li>
+              <a
+                routerLink="/shop"
+                routerLinkActive="bg-accent text-on-accent"
+                class="inline-flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm font-medium text-on-primary transition-colors duration-200 ease-out hover:bg-white/10 focus-visible:outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ring motion-reduce:transition-none"
+                [ngClass]="collapsed() ? 'md:justify-center md:px-0' : ''"
+                [attr.aria-label]="collapsed() ? 'Mi tienda' : null"
+                [title]="collapsed() ? 'Mi tienda' : ''"
+              >
+                <lucide-icon [img]="shopIcon" [size]="18" aria-hidden="true" />
+                <span [ngClass]="collapsed() ? 'md:hidden' : ''">Mi tienda</span>
+              </a>
+            </li>
+          }
         </ul>
       </nav>
     </div>

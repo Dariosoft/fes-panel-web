@@ -272,6 +272,7 @@ export class Catalog {
       price: product.price,
       currency: product.currency,
       stock: product.stock,
+      description: product.description,
       images: product.images,
     };
   }
@@ -294,6 +295,7 @@ export class Catalog {
       price: product.price,
       currency: product.currency,
       stock: product.stock,
+      description: product.description,
       stage: PRODUCT_STAGE.draft,
       owned: false,
       origin: PRODUCT_ORIGIN.local,
