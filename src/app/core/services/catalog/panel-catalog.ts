@@ -68,6 +68,7 @@ export class PanelCatalog {
       price: product.price,
       currency: product.currency,
       stock: product.stock ?? undefined,
+      description: product.description ?? null,
       stage: product.stage,
       owned: product.ownerAccountId != null,
       origin: PRODUCT_ORIGIN.server,
@@ -81,6 +82,7 @@ export class PanelCatalog {
     formData.append('name', product.name);
     formData.append('price', String(product.price));
     formData.append('currency', product.currency);
+    formData.append('description', product.description ?? '');
     if (product.stock !== undefined) {
       formData.append('stock', String(product.stock));
     }

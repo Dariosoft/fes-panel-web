@@ -10,6 +10,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  Store,
   X,
 } from 'lucide-angular';
 import { SessionBar } from './core/components/session-bar/session-bar';
@@ -30,6 +31,7 @@ export class App {
   protected readonly menuOpen = signal(false);
   protected readonly inicioIcon = House;
   protected readonly catalogIcon = Boxes;
+  protected readonly shopIcon = Store;
   protected readonly collapseIcon = ChevronLeft;
   protected readonly expandIcon = ChevronRight;
   protected readonly menuIcon = Menu;

@@ -10,6 +10,7 @@ export interface CatalogProduct {
   price: number;
   currency: Currency;
   stock?: number;
+  description: string | null;
   stage: ProductStage;
   owned: boolean;
   origin: ProductOrigin;
@@ -23,6 +24,7 @@ export interface EditableProduct {
   price: number;
   currency: Currency;
   stock?: number;
+  description: string | null;
   images: ImageItem[];
 }
 
@@ -38,6 +40,7 @@ export interface ServerProduct {
   price: number;
   currency: CatalogProduct['currency'];
   stock: number | null;
+  description: string | null;
   stage: CatalogProduct['stage'];
   images: ServerImageItem[];
   createdAt: string;

@@ -1,0 +1,3 @@
+export const SHOP_NAME_MIN_LENGTH = 1;
+export const SHOP_NAME_MAX_LENGTH = 80;
+export const SHOP_DESCRIPTION_MAX_LENGTH = 1000;

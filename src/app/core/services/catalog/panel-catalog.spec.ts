@@ -15,6 +15,7 @@ describe('PanelCatalog', () => {
     price: 1500,
     currency: 'ARS',
     stock: 3,
+    description: 'Mate de madera',
     images: [],
   };
 
@@ -52,6 +53,7 @@ describe('PanelCatalog', () => {
         price: 1500,
         currency: 'ARS',
         stock: null,
+        description: 'Mate de madera',
         stage: 'draft',
         images: [{ id: 'image-1', url: 'https://api/catalog/images/image-1' }],
         createdAt: '2026-01-01T00:00:00Z',
@@ -61,6 +63,7 @@ describe('PanelCatalog', () => {
     expect(products?.[0].owned).toBe(true);
     expect(products?.[0].origin).toBe('server');
     expect(products?.[0].stock).toBeUndefined();
+    expect(products?.[0].description).toBe('Mate de madera');
     expect(products?.[0].images).toEqual([
       { id: 'image-1', url: 'https://api/catalog/images/image-1' },
     ]);
@@ -86,6 +89,7 @@ describe('PanelCatalog', () => {
     ]);
 
     expect(products?.[0].owned).toBe(false);
+    expect(products?.[0].description).toBeNull();
   });
 
   it('adds the name filter to the list request', () => {
@@ -111,7 +115,17 @@ describe('PanelCatalog', () => {
     expect(body.get('price')).toBe('1500');
     expect(body.get('currency')).toBe('ARS');
     expect(body.get('stock')).toBe('3');
+    expect(body.get('description')).toBe('Mate de madera');
     expect(body.get('images')).toBeInstanceOf(File);
+    request.flush({});
+  });
+
+  it('sends an empty description to clear it', () => {
+    panelCatalog.create({ ...editable, description: null }).subscribe();
+
+    const request = httpTesting.expectOne(`${baseUrl}/products`);
+    const body = request.request.body as FormData;
+    expect(body.get('description')).toBe('');
     request.flush({});
   });
 

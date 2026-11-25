@@ -60,6 +60,15 @@
     </button>
   </div>
 
+  @if (savedNotice()) {
+    <p
+      class="rounded-md border border-accent bg-card px-3 py-2 text-sm text-foreground"
+      role="status"
+    >
+      Producto guardado.
+    </p>
+  }
+
   @if (hasLocalProducts()) {
     <p
       class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground"

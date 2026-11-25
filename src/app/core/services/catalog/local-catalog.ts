@@ -12,7 +12,13 @@ export class LocalCatalog {
 
     try {
       const products = JSON.parse(stored) as unknown;
-      return Array.isArray(products) ? (products as CatalogProduct[]) : [];
+      if (!Array.isArray(products)) {
+        return [];
+      }
+      return (products as CatalogProduct[]).map((product) => ({
+        ...product,
+        description: product.description ?? null,
+      }));
     } catch {
       sessionStorage.removeItem(CATALOG_STORAGE_KEYS.localProducts);
       return [];

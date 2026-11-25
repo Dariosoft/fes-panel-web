@@ -1,7 +1,13 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import {
+  ActivatedRoute,
+  ParamMap,
+  Router,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { PRODUCT_ORIGIN } from '../../core/constants/product-origin';
 import { PRODUCT_STAGE } from '../../core/constants/product-stage';
 import { CatalogProduct } from '../../core/models/catalog-product';
@@ -12,12 +18,14 @@ import { CatalogListView } from './catalog-list';
 describe('CatalogListView', () => {
   let fixture: ComponentFixture<CatalogListView>;
   let authenticated: boolean;
+  let activatedRoute: { snapshot: { queryParamMap: ParamMap } };
 
   const buildProduct = (overrides: Partial<CatalogProduct>): CatalogProduct => ({
     id: 'product-1',
     name: 'Mate',
     price: 1500,
     currency: 'ARS',
+    description: null,
     stage: PRODUCT_STAGE.draft,
     owned: true,
     origin: PRODUCT_ORIGIN.server,
@@ -63,6 +71,7 @@ describe('CatalogListView', () => {
 
   beforeEach(() => {
     authenticated = false;
+    activatedRoute = { snapshot: { queryParamMap: convertToParamMap({}) } };
     catalog.loading.set(false);
     catalog.error.set(null);
     catalog.filter.set('');
@@ -73,10 +82,14 @@ describe('CatalogListView', () => {
     catalog.applyFilter.mockClear();
     catalog.clearFilters.mockClear();
     catalog.publish.mockClear();
+    catalog.unpublish.mockClear();
+    catalog.remove.mockClear();
+    catalog.publishCatalog.mockClear();
 
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
+        { provide: ActivatedRoute, useValue: activatedRoute },
         { provide: Session, useValue: { authenticated: () => authenticated } },
         { provide: Catalog, useValue: catalog },
       ],
@@ -161,7 +174,129 @@ describe('CatalogListView', () => {
     ]);
     await createView();
 
-    expect(findButton('Publicar').getAttribute('aria-disabled')).toBe('true');
+    const publish = findButton('Publicar');
+    expect(publish.getAttribute('aria-disabled')).toBe('true');
+
+    publish.click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('does not unpublish without a session', async () => {
+    catalog.accountGroup.set([buildProduct({ id: 'server-1', stage: PRODUCT_STAGE.published })]);
+    await createView();
+
+    findButton('Despublicar').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(catalog.unpublish).not.toHaveBeenCalled();
+  });
+
+  it('unpublishes only after confirming the dialog', async () => {
+    authenticated = true;
+    catalog.accountGroup.set([buildProduct({ id: 'server-1', stage: PRODUCT_STAGE.published })]);
+    await createView();
+
+    findButton('Despublicar').click();
+    await fixture.whenStable();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toContain('¿Querés despublicar');
+
+    const dialogButtons = dialog.querySelectorAll('button');
+    (dialogButtons[dialogButtons.length - 1] as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(catalog.unpublish).toHaveBeenCalled();
+  });
+
+  it('does not delete a server product without a session', async () => {
+    catalog.accountGroup.set([buildProduct({ id: 'server-1' })]);
+    await createView();
+
+    findButton('Eliminar').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(catalog.remove).not.toHaveBeenCalled();
+  });
+
+  it('deletes only after confirming the dialog', async () => {
+    authenticated = true;
+    catalog.accountGroup.set([buildProduct({ id: 'server-1' })]);
+    await createView();
+
+    findButton('Eliminar').click();
+    await fixture.whenStable();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toContain('Esta acción no se puede deshacer');
+
+    const dialogButtons = dialog.querySelectorAll('button');
+    (dialogButtons[dialogButtons.length - 1] as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(catalog.remove).toHaveBeenCalled();
+  });
+
+  it('does not publish the catalog when there are no drafts', async () => {
+    authenticated = true;
+    await createView();
+
+    findButton('Publicar catálogo').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(catalog.publishCatalog).not.toHaveBeenCalled();
+  });
+
+  it('publishes the catalog only after confirming the dialog', async () => {
+    authenticated = true;
+    catalog.localGroup.set([
+      buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
+    ]);
+    catalog.canPublishCatalog.set(true);
+    await createView();
+
+    findButton('Publicar catálogo').click();
+    await fixture.whenStable();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.textContent).toContain('Se publicarán');
+
+    const dialogButtons = dialog.querySelectorAll('button');
+    (dialogButtons[dialogButtons.length - 1] as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(catalog.publishCatalog).toHaveBeenCalled();
+  });
+
+  it('shows an error when a confirmed action fails', async () => {
+    authenticated = true;
+    catalog.localGroup.set([
+      buildProduct({ id: 'local-1', origin: PRODUCT_ORIGIN.local, owned: false }),
+    ]);
+    catalog.publish.mockReturnValue(throwError(() => new Error('boom')));
+    await createView();
+
+    findButton('Publicar').click();
+    await fixture.whenStable();
+
+    const dialogButtons = fixture.nativeElement.querySelectorAll('[role="dialog"] button');
+    (dialogButtons[dialogButtons.length - 1] as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('No se pudo publicar el producto.');
+  });
+
+  it('ignores a confirmation without a pending action', async () => {
+    await createView();
+
+    fixture.componentInstance.confirmAction();
+
+    expect(catalog.publish).not.toHaveBeenCalled();
   });
 
   it('publishes only after confirming the dialog', async () => {
@@ -183,5 +318,21 @@ describe('CatalogListView', () => {
     await fixture.whenStable();
 
     expect(catalog.publish).toHaveBeenCalled();
+  });
+
+  it('shows a success notice for a saved product and clears the query parameter', async () => {
+    activatedRoute.snapshot = {
+      queryParamMap: convertToParamMap({ guardado: 'producto' }),
+    };
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    await createView();
+
+    expect(fixture.nativeElement.textContent).toContain('Producto guardado.');
+    expect(navigate).toHaveBeenCalledWith([], {
+      queryParams: { guardado: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   });
 });

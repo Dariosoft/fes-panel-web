@@ -14,6 +14,7 @@ describe('LocalCatalog', () => {
     price: 1500,
     currency: 'ARS',
     stock: 3,
+    description: null,
     stage: PRODUCT_STAGE.draft,
     owned: false,
     origin: PRODUCT_ORIGIN.local,
@@ -60,5 +61,13 @@ describe('LocalCatalog', () => {
 
     expect(localCatalog.list()).toEqual([]);
     expect(sessionStorage.getItem(CATALOG_STORAGE_KEYS.localProducts)).toBeNull();
+  });
+
+  it('normalizes legacy products without description', () => {
+    const legacy = { ...product } as Partial<CatalogProduct>;
+    delete legacy.description;
+    sessionStorage.setItem(CATALOG_STORAGE_KEYS.localProducts, JSON.stringify([legacy]));
+
+    expect(localCatalog.list()[0].description).toBeNull();
   });
 });
